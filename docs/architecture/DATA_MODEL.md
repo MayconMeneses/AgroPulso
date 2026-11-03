@@ -1,6 +1,6 @@
 # Modelo de dados inicial — candidato
 
-Fonte: §5, §6, §8, §17. Entidades são candidatas; criar somente as exigidas por casos de uso aprovados (§17). Nada implementado.
+Fonte: §5, §6, §8, §17. Entidades são candidatas; criar somente as exigidas por casos de uso aprovados (§17). Implementado na migração v2 (`src/migrations/migrations.ts`): `farm`, `crop_type`, `crop_cycle` e `audit_event` (nomes no singular). Sem `plots`, `field_activities`, `financial_entries`, `harvest_entries`, `sales` e `attachments`. Ainda não há `idempotency_key` (invariante 4) nem exclusão com auditoria (invariante 6).
 A cultura é referência configurável (`crop_types`), sem tabela por cultura (§8).
 
 ## Entidades candidatas e relacionamentos
@@ -48,10 +48,12 @@ Papéis usam as permissões de [ACCESS_MATRIX.md](../security/ACCESS_MATRIX.md).
 | RASCUNHO | planejar | PLANEJADA | cycle.manage | datas estimadas coerentes | início/fim estimados | crop_cycle.planned | voltar a RASCUNHO | "Datas incoerentes" |
 | PLANEJADA | iniciar | EM_ANDAMENTO | cycle.manage | — | data de início real | crop_cycle.started | voltar a PLANEJADA se sem registros | "Safra já iniciada" |
 | EM_ANDAMENTO | concluir | CONCLUIDA | cycle.manage | colheita registrada ou motivo explícito (DP-008, RN-AG-021) | motivo de perda se sem colheita | crop_cycle.closed | reabrir com justificativa | "Informe colheita ou motivo" |
-| RASCUNHO / PLANEJADA / EM_ANDAMENTO | cancelar | CANCELADA | proprietário (motivo autorizado) | motivo informado | motivo | crop_cycle.closed (cancel) | reabrir com justificativa | "Motivo obrigatório" |
+| RASCUNHO / PLANEJADA / EM_ANDAMENTO | cancelar | CANCELADA | proprietário (motivo autorizado) | motivo informado | motivo | crop_cycle.cancelled | reabrir com justificativa | "Motivo obrigatório" |
 | CONCLUIDA | ajustar | CONCLUIDA | cycle.manage | operação permitir | justificativa | harvest/sale.corrected | estorno auditado | "Justificativa obrigatória" |
 
 Regras comuns: histórico nunca é eliminado; colheitas parciais e vendas em datas diferentes não são bloqueadas; reenvio da mesma ação não duplica (idempotência); conflito de versão retorna mensagem legível. Detalhes de transições internas (ex.: reabrir) ficam marcados como **proposta a validar** com o dono.
 
+**Implementado (Fase 2):** criar, planejar, iniciar, concluir e cancelar, com controle de versão e um evento por passo na mesma transação. **Não implementado:** voltar de estado, reabrir e ajustar (propostas acima, sem validação do dono). "Concluir" aceita só o motivo escrito, porque ainda não existe colheita (Fase 4); a exigência "colheita ou motivo" (RN-AG-021) fica incompleta até lá. Datas da safra são de calendário (AAAA-MM-DD), sem hora; o fuso fica na propriedade, sem valor padrão.
+
 ## Eventos (§21)
-farm.created, crop_cycle.opened/closed, activity.recorded, expense.recorded, harvest.recorded/corrected, sale.recorded/corrected, attachment.uploaded, access.denied. Campos: autoria, tenant, recurso, timestamp, antes/depois limitados, motivo, correlation ID.
+farm.created, crop_type.created, crop_cycle.opened/planned/started/closed/cancelled (os seis acima já emitidos pelo código; `closed` = concluída, `cancelled` = cancelada), activity.recorded, expense.recorded, harvest.recorded/corrected, sale.recorded/corrected, attachment.uploaded, access.denied. Campos: autoria, tenant, recurso, timestamp, antes/depois limitados, motivo, correlation ID.
