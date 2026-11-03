@@ -3,7 +3,10 @@
 Data: 2026-11-03. Status da fase: **ENCERRADA POR DECISÃO DO DONO, NÃO POR GATES APROVADOS.** O dono mandou começar a criação em 2026-11-03. Gates sem PASS e pendências estão listados abaixo.
 
 ## Commit
-N/A — repositório não inicializado. Não há hash. O dono disse que criaria o repositório (DP-014); `git init` não foi autorizado. O OneDrive no caminho é só nomeação (desativado), não é restrição.
+`79eed4c` na branch `main`, enviado a https://github.com/MayconMeneses/AgroPulso a pedido do dono em 2026-11-03 (conferido com `git ls-remote`). Inclui os documentos e o código inicial da Fase 1; o PDF do prompt mestre ficou de fora (`.gitignore`) porque o repositório é de acesso público anônimo. O OneDrive no caminho é só nomeação (desativado), não é restrição.
+
+## Fase 1 (início, 2026-11-03)
+Código em `src/` (armazenamento, migrações, backup) e `tests/`. `npm test` com Node 24.20: **12 testes, 12 passam** (migração do zero, repetição sem reaplicar, ordem inválida, banco mais novo, migração com falha; exportar/importar sem perda, importar duas vezes sem duplicar, restauração substitui, arquivo adulterado rejeitado, versão errada rejeitada, estrutura trocada rejeitada, falha no meio desfaz tudo). **NOT_RUN:** checagem de tipos (sem compilador TypeScript instalado), Android, iOS e Windows reais. O checksum detecta corrupção, não impede forja.
 
 ## Motivação
 O Prompt Mestre (§27, §30) manda começar pela Fase 0 e gerar os documentos de §29 antes de qualquer código.
@@ -63,4 +66,4 @@ O Prompt Mestre (§27, §30) manda começar pela Fase 0 e gerar os documentos de
 Saídas dos comandos acima, desta sessão. Spec lido de `AgroPulso_Prompt_Mestre_Arquitetura_e_Engenharia.pdf`.
 
 ## Decisão de prosseguir
-O dono autorizou a criação em 2026-11-03. **Em aberto para a Fase 1:** DP-011 (aparelho-alvo: define o armazenamento), ADR-004 (banco embarcado) e `git init` (o dono disse que cria o repositório). A Fase 1 deve ser reduzida ao que sobra da fundação com app local: estrutura de módulos, banco embarcado com migrações, exportar/importar como backup/restore e testes. Sem login, tenant nem RLS, e sem módulos das fases 2 a 4.
+O dono autorizou a criação em 2026-11-03. **Em aberto para a Fase 1:** como entregar o app em Android, iOS e Windows sem hospedagem e sem custo (DP-011 parcial); o adaptador de armazenamento de cada plataforma. A Fase 1 deve ser reduzida ao que sobra da fundação com app local: estrutura de módulos, banco embarcado com migrações, exportar/importar como backup/restore e testes. Sem login, tenant nem RLS, e sem módulos das fases 2 a 4.
