@@ -15,7 +15,7 @@ Regra geral (§30): para decisão técnica reversível, usar a alternativa menos
 | ADR-008 | Sem IA, data lake, Kubernetes, Kafka, microsserviços | Requisito explícito do Prompt Mestre | — | §15 | DECIDIDA pelo spec |
 | ADR-009 | Estado atual + histórico transacional; sem event sourcing | Auditoria sem complexidade | — | §21 | PROPOSTA |
 | ADR-010 | Workers só com necessidade medida | Relatórios síncronos até benchmark indicar o contrário | — | §15 | PROPOSTA |
-| ADR-011 | Aplicativo que funciona 100% sem rede e sem servidor próprio, com dados em armazenamento local. Empacotamento (PWA instalável, app Android ou desktop) fica em aberto até DP-011 (aparelhos-alvo) | O "offline na V2" do §14 sobe para V1 porque o app é local; dado financeiro nunca sai do aparelho sem ação explícita de exportar | — | §14, DP-011 | PROPOSTA (reescrita; empacotamento aberto) |
+| ADR-011 | Aplicativo que funciona 100% sem rede e sem servidor próprio, com dados em armazenamento local. Entrega como PWA instalável (Android, iOS, Windows), com os arquivos do app servidos por hospedagem estática gratuita; sem backend (decisão do dono, 2026-11-03; serviço e instalação no iOS a verificar, DP-011) | O "offline na V2" do §14 sobe para V1 porque o app é local; dado financeiro nunca sai do aparelho sem ação explícita de exportar | — | §14, DP-011 | PROPOSTA (reescrita; forma de entrega decidida, verificação pendente) |
 | ADR-012 | Mapas: MapLibre GL JS, sem depender de tiles públicos do OSM; modo sem mapa-base | Licença do provedor a verificar | Sem mapa no MVP | §10 | ADIADA |
 | ADR-013 | Testes: Vitest e Playwright | Padrão sugerido | — | §15, §24 | PROPOSTA |
 

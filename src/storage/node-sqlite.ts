@@ -5,6 +5,8 @@ import type { Database, Row } from './database.ts';
 // Os adaptadores de Android, iOS e Windows entram quando a entrega for decidida (DP-011).
 export function openNodeSqlite(path = ':memory:'): Database {
   const raw = new DatabaseSync(path);
+  // O SQLite deixa chaves estrangeiras desligadas por padrão; sem isto elas não protegem nada.
+  raw.exec('pragma foreign_keys = on');
   let inTransaction = false;
 
   return {

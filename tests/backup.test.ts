@@ -3,6 +3,9 @@ import { test } from 'node:test';
 import { sha256Hex } from '../src/backup/codec.ts';
 import { BackupError } from '../src/backup/errors.ts';
 import { exportBackup } from '../src/backup/export.ts';
+import { createCropType } from '../src/domain/crop-types.ts';
+import { openCycle } from '../src/domain/cycles.ts';
+import { createFarm, listFarms } from '../src/domain/farms.ts';
 import { importBackup } from '../src/backup/import.ts';
 import { freshDb, seed } from './helpers.ts';
 
@@ -111,6 +114,23 @@ test('lixo, outro formato e estrutura trocada são rejeitados', async () => {
     importBackup(destino, await forge(arquivo, (p) => { p.tables.lote[0].qtd = [1]; })),
     'estrutura',
   );
+});
+
+test('backup com registro ligado a algo que não existe é rejeitado e o banco segue usável', async () => {
+  const origem = await freshDb();
+  const farm = await createFarm(origem, { name: 'Sítio', timezone: 'America/Recife' });
+  const crop = await createCropType(origem, { name: 'Milho' });
+  await openCycle(origem, { farmId: farm.id, cropTypeId: crop.id });
+  const arquivo = await exportBackup(origem);
+  const orfao = await forge(arquivo, (p) => { p.tables.crop_cycle[0].farm_id = 'fantasma'; });
+
+  const destino = await freshDb();
+  await createFarm(destino, { name: 'Antes', timezone: 'America/Bahia' });
+  await rejectsWith(importBackup(destino, orfao), 'estrutura');
+  assert.deepEqual((await listFarms(destino)).map((f) => f.name), ['Antes']);
+  // a transação foi fechada: o banco aceita novas gravações
+  await createFarm(destino, { name: 'Depois', timezone: 'America/Bahia' });
+  assert.equal((await listFarms(destino)).length, 2);
 });
 
 test('falha no meio da gravação desfaz tudo', async () => {

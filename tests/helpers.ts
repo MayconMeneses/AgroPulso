@@ -7,7 +7,7 @@ import type { Database } from '../src/storage/database.ts';
 // Tabela só de teste: serve para provar que o backup preserva dados de qualquer tipo
 // sem puxar tabelas de domínio das fases 2 a 4.
 export const testTable: Migration = {
-  version: 2,
+  version: migrations.length + 1,
   name: 'tabela_de_teste',
   sql: 'create table lote (id integer primary key, nome text not null, qtd real, foto blob, obs text) strict',
 };

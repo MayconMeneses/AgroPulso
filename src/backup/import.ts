@@ -84,5 +84,11 @@ export async function importBackup(db: Database, text: string): Promise<void> {
       const sql = `insert into ${quote(table)} (${columns.map(quote).join(', ')}) values (${columns.map(() => '?').join(', ')})`;
       for (const row of rows) await db.run(sql, columns.map((c) => row[c] as SqlValue));
     }
+    // As chaves estrangeiras estão adiadas até o COMMIT; checar aqui faz a falha virar BackupError
+    // e desfazer a transação antes de o COMMIT ser tentado.
+    const orfaos = await db.all('pragma foreign_key_check');
+    if (orfaos.length > 0) {
+      throw new BackupError('estrutura', 'O backup tem registros ligados a dados que não existem');
+    }
   });
 }

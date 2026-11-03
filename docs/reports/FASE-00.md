@@ -30,7 +30,7 @@ O Prompt Mestre (§27, §30) manda começar pela Fase 0 e gerar os documentos de
 - IDs distintos: RF-AG 16, RN-AG 22, RNF-AG 8, CT-AG 17, SEC-AG 20, DP 21. Sem definição duplicada. Em THREAT_MODEL os IDs SEC-AG aparecem também na tabela de revisão do app local, o que o `uniq -d` acusa; não é duplicação de definição.
 - Encoding: todos UTF-8 (`file`), sem exceções.
 - Nenhum diretório vazio.
-- "Nada implementado": nenhum código existe.
+- Quando este relatório foi fechado, só existia o código da base da Fase 1. Código posterior está em [FASE-02.md](FASE-02.md); as contagens de testes acima (12) são as daquele momento.
 
 ## Gates
 | Gate | Resultado | Observação |
@@ -42,14 +42,14 @@ O Prompt Mestre (§27, §30) manda começar pela Fase 0 e gerar os documentos de
 | Entrevistas com 10–15 pessoas (§3) | SUBSTITUÍDO (decisão do dono) | 0 entrevistas; trocadas por pesquisa secundária. Não é PASS: roteiro respondido em parte, resto UNKNOWN |
 | Matriz dor × frequência × custo (§3) | PARCIAL | 3 linhas só com o que as fontes sustentam |
 | Critérios do piloto | PASS (parcial) | CT-AG-001..017 transcritos do §28, todos NOT_RUN |
-| Custos conhecidos / decisão de prosseguir | BLOCKED, ultrapassado pelo dono | DP-009, DP-010, DP-015, DP-019, DP-020 parciais; DP-011, DP-013, DP-021 abertas. Sem hospedagem: custo de nuvem zero |
+| Custos conhecidos / decisão de prosseguir | BLOCKED, ultrapassado pelo dono | DP-009, DP-010, DP-011, DP-015, DP-019, DP-020 parciais; DP-013 e DP-021 abertas (conferido em DECISOES_PENDENTES.md). Sem hospedagem: custo de nuvem zero |
 | Termo de uso | PARCIAL | minuta feita; LGPD arts. 41/46–48/52 e Resolução ANPD 2/2022 não confirmados; sem revisão de advogado; campos comerciais em DP-021 |
 
 ## Histórico das rodadas (2026-11-03)
 - **Segunda:** dono delegou as pendências "como se fosse para o Brasil", adaptável a toda a agricultura; DIRECAO_VISUAL criado; RN-AG-019..022 e RF-AG-016 no PRD; foco no Nordeste (DP-020); o dono criaria o repositório.
 - **Terceira:** caderno da Emater-DF, TCC da Unesp e TCC da UFPB (n=16) lidos; Sicredi e artigo de Guanambi devolveram 403 (não lidos); sem pessoas reais para entrevistas, substituídas por pesquisa; projeto não será hospedado.
 - **Quarta:** app local, hospedagem só com clientes; ADR-001, 003, 005, 007 e 011 reescritas; minuta do termo de uso (Maycon Meneses, pessoa física, sem CNPJ); DATA_MODEL, THREAT_MODEL e ACCESS_MATRIX ajustados ao perfil único.
-- Contagem das decisões pendentes: 21 itens, 13 resolvidas, 5 parciais, 3 abertas.
+- Contagem das decisões pendentes: 21 itens, 13 resolvidas, 6 parciais, 2 abertas.
 
 ## Problemas e correções
 - Primeira extração do PDF perdeu acentos (codificação do `pdftotext`); reextraída com `-enc UTF-8`. Leitura de PDF pelo `Read` falhou (poppler ausente); contornado com `pdftotext`.
@@ -59,7 +59,7 @@ O Prompt Mestre (§27, §30) manda começar pela Fase 0 e gerar os documentos de
 ## Riscos
 - DATA_MODEL: transições além das citadas no §6 (planejar, iniciar, reabrir) são proposta minha, marcadas "a validar".
 - ACCESS_MATRIX: papéis multiusuário são referência futura; na V1 há um perfil.
-- ADR-004 (PostgreSQL) está desatualizada: exige servidor. Precisa de banco embarcado.
+- ADR-004 foi reescrita como SQLite embarcado; ainda não validada em Android, iOS e Windows reais.
 - Benchmark e entrevistas dependem de fontes secundárias; nada validado com produtores reais.
 
 ## Evidências

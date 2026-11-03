@@ -1,6 +1,6 @@
 # PRD — AgroPulso (hipóteses a validar)
 
-Fonte: Prompt Mestre v1.0 (30/10/2026), citado como §n. Status: **proposta a validar**. Nada aqui está implementado.
+Fonte: Prompt Mestre v1.0 (30/10/2026), citado como §n. Status: **proposta a validar**. Implementado até aqui (2026-11-03, código em `src/`, testes em `tests/`): base da Fase 1 e, da Fase 2, propriedade sem mapa (RF-AG-002), cultura configurável (RF-AG-013, RN-AG-019), várias safras por propriedade (RF-AG-003) e estados da safra com motivo e eventos (RN-AG-002/003/021 só pelo caminho do motivo). O resto continua sem código.
 Nenhum número, recomendação agronômica, regra ambiental ou dado externo foi acrescentado além do que o Prompt Mestre traz.
 
 ## 1. Problema e público (§1)
@@ -104,7 +104,7 @@ Não há dados regionais, estatísticas nem recomendações agronômicas neste d
 Ver [THREAT_MODEL.md](../security/THREAT_MODEL.md) (SEC-AG) e [ACCESS_MATRIX.md](../security/ACCESS_MATRIX.md).
 
 ## 10. Critérios de aceite do piloto (CT-AG, §28)
-Cada item só vira PASS com evidência reproduzível. Estado atual de todos: **NOT_RUN** (nada construído).
+Cada item só vira PASS com evidência reproduzível. Estado atual: **NOT_RUN**, exceto o que os testes automáticos de `tests/domain.test.ts` e `tests/backup.test.ts` cobrem em parte (CT-AG-002 e CT-AG-003 no nível do código, sem interface; CT-AG-013 só como exportar/importar de teste). Nenhum vira PASS sem a evidência completa do critério.
 | ID | Critério |
 |---|---|
 | CT-AG-001 | Duas empresas isoladas no banco, na API e nos arquivos |
