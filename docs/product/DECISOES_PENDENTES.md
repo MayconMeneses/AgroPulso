@@ -1,0 +1,33 @@
+# Decisões pendentes e resolvidas
+
+Em 2026-11-03 o dono delegou: resolver as pendências "como se fosse para o Brasil", adaptáveis a todas as áreas da agricultura.
+Glossário V1: como o app é local (DP-015), "tenant" nas linhas abaixo e no PRD significa **o perfil local do usuário**, e "membro/colaborador/Master" só existe se houver servidor. Os testes CT-AG-009 e CT-AG-010 não se aplicam na V1.
+Regra aplicada: o agente fixa o **modelo** (o que é configurável e como se comporta) e **não inventa valores** (preços, fatores de conversão, prazos, RPO/RTO, retenção). Valor numérico, questão legal, contratação ou custo pago continuam exigindo o dono (§30).
+
+Estados: RESOLVIDA (modelo fechado, sem número a inventar) · PARCIAL (modelo fechado, falta valor) · ABERTA.
+
+| ID | Decisão | Fonte | Resolução proposta | Estado |
+|---|---|---|---|---|
+| DP-001 | Culturas e regime de safras | §2 | Catálogo de culturas configurável por tenant, com categoria (temporária, permanente/perene, hortaliça, fruticultura, silvicultura, outra). Ciclo com início/fim estimados e opcionais; perenes admitem várias colheitas no mesmo ciclo e ciclo de longa duração. Nenhuma cultura nem calendário codificado | RESOLVIDA |
+| DP-002 | Definições contábeis | §2, §7 | MVP: fluxo de caixa e custo direto por safra. Categorias de custo configuráveis, com um conjunto inicial genérico editável. Sem custeio completo nem regime fiscal | RESOLVIDA |
+| DP-003 | Unidades de comercialização e pesos | §2, §8 | Unidades controladas: ha, m², kg, t, L, unidade. Unidades locais (saca, caixa, arroba, alqueire etc.) são cadastráveis; quando medem peso ou área, exigem fator informado, com origem, por cultura/contexto. Alqueire e saca variam por região e produto, por isso nenhum fator padrão é embarcado | RESOLVIDA |
+| DP-004 | Conectividade do público | §2, §13 | Premissa: conexão instável. MVP online com rascunhos de formulário; offline completo na V2 | RESOLVIDA (premissa; validar em entrevistas) |
+| DP-005 | Tolerância à digitação | §2, §13 | Fluxo em poucos toques, escolhas recentes, campos com unidade visível | RESOLVIDA (premissa; validar) |
+| DP-006 | Georreferenciamento | §2, §10 | Mapa opcional, fora do aceite do MVP. Área declarada sempre aceita sem mapa | RESOLVIDA |
+| DP-007 | Mão de obra familiar | §7 | Registrada como atividade com horas. Valor imputado é opção por tenant, desligada por padrão. Relatórios mostram "mão de obra familiar (não paga)" em linha separada, fora do custo registrado | RESOLVIDA |
+| DP-008 | CONCLUIDA exige colheita? | §6 | Não. Exige colheita registrada **ou** um motivo explícito ("perda total", "sem apuração" etc.). Nunca gerar rendimento zero automático | RESOLVIDA |
+| DP-009 | RPO e RTO | §22 | Os valores dependem de custo e do dono. Modelo: definir antes de qualquer dado real; restauração testada por tenant | PARCIAL |
+| DP-010 | Preços e planos | §25 | Piloto sem gateway e sem tiers. Medir uso por propriedades, usuários e armazenamento para decidir depois | PARCIAL |
+| DP-011 | Aparelhos e navegadores-alvo | §13, §28 | Dono (2026-11-03): **Android, iOS e computador Windows**. Falta decidir como entregar o app nos três sem hospedagem e sem custo (APK instalado à mão no Android; iOS fora da App Store e PWA exigem endereço público ou conta paga da Apple, não verificado; Windows via pacote ou PWA). Versão mínima de cada sistema a definir. Até lá, o código da Fase 1 não depende de empacotamento: usa uma interface de armazenamento (ADR-004) | PARCIAL (aparelhos definidos; entrega em aberto) |
+| DP-012 | Rascunhos locais no MVP | §2, §14 | Incluir apenas rascunho de formulário não enviado, por usuário/tenant, apagado no logout, sem cache de dados financeiros privados. Validar no piloto | RESOLVIDA (premissa) |
+| DP-013 | Retenção de dados de fazenda/localização | §19, §25 | Sujeito à LGPD (lei brasileira de proteção de dados). Prazos e base legal exigem validação jurídica; não definidos pelo agente. Com o app local (DP-015) o desenvolvedor não retém dados; a minuta em docs/legal/TERMO_DE_USO_MINUTA.md diz isso e precisa de revisão de advogado | ABERTA (exige dono/jurídico) |
+| DP-014 | Repositório e `git init` | §30 | O dono criará o repositório. O OneDrive no caminho é só nomeação (desativado) | RESOLVIDA (dono) |
+| DP-015 | Hospedagem, custos e storage S3 | §15, §30 | Dono decidiu em 2026-11-03: **não haverá hospedagem**; o projeto deve funcionar sem estar hospedado. Sem custo de nuvem. Confirmado pelo dono: app **local, dados no aparelho de uma pessoa**; hospedagem só se surgirem clientes (gatilho futuro, com nova decisão e custo autorizado). Falta rever as ADR que supõem servidor (ver DECISIONS.md), definir backup por exportação de arquivo e o critério "temos clientes" | PARCIAL (formato local decidido; ADR a rever) |
+| DP-016 | Usuário financeiro | §18 | Permissão (financial.read/write) atribuível a qualquer membro, não papel separado | RESOLVIDA |
+| DP-017 | Moeda, idioma, fuso e formatos (novo) | §8, §13 | Moeda BRL; interface pt-BR; vírgula decimal; data dd/mm/aaaa. Fuso guardado **por propriedade** (o Brasil tem mais de um); persistência em UTC | RESOLVIDA |
+| DP-018 | Abrangência por área da agricultura (novo) | pedido do dono | Núcleo genérico (propriedade, área, ciclo, atividade, custo, colheita, venda). Tipos de atividade, culturas, categorias e unidades são dados configuráveis. Pecuária e outras áreas ficam V3 (§2), mas o modelo não deve impedi-las | RESOLVIDA |
+| DP-019 | Tema claro/escuro (novo) | pedido do dono | Seletor escuro/claro/automático; onde guardar a preferência (conta ou aparelho) ainda em aberto | PARCIAL |
+| DP-020 | Foco regional no Nordeste (novo) | pedido do dono | Entrevistas, benchmark e piloto priorizam o Nordeste; núcleo continua genérico. Unidades regionais (ex.: tarefa) entram como unidades cadastráveis, sem fator padrão; quais estados e perfis entrar primeiro fica com o dono | PARCIAL |
+| DP-021 | Campos comerciais do termo de uso (novo) | docs/legal/TERMO_DE_USO_MINUTA.md | Contato, preço e forma de pagamento, validade técnica, canal e horário de suporte, número de aparelhos por licença. Dono pediu em 2026-11-03 para **deixar para o final**; não perguntar antes | ABERTA (adiada pelo dono) |
+
+Resumo: 13 resolvidas (algumas por premissa a validar), 6 parciais (DP-009, DP-010, DP-011, DP-015, DP-019, DP-020), 2 abertas (DP-013, DP-021).
