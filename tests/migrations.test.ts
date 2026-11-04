@@ -30,6 +30,8 @@ test('migra um banco vazio até a última versão', async () => {
     'sale',
     'sale_receipt',
     'schema_migrations',
+    'stock_item',
+    'stock_movement',
     'unit',
     'unit_conversion',
   ]);

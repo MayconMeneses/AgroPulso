@@ -181,4 +181,40 @@ export const migrations: Migration[] = [
       create index sale_receipt_sale on sale_receipt (sale_id);
     `,
   },
+  {
+    version: 6,
+    name: 'estoque',
+    sql: `
+      create table stock_item (
+        id text primary key,
+        farm_id text not null references farm(id),
+        name text not null check (length(trim(name)) > 0),
+        unit_id text not null references unit(id),
+        min_micro integer check (min_micro >= 0),
+        created_at text not null
+      ) strict;
+      create index stock_item_farm on stock_item (farm_id);
+      create table stock_movement (
+        id text primary key,
+        item_id text not null references stock_item(id),
+        kind text not null check (kind in ('ENTRADA','SAIDA','AJUSTE')),
+        delta_micro integer not null check (delta_micro <> 0),
+        occurred_on text not null,
+        cycle_id text references crop_cycle(id),
+        note text,
+        author text not null check (length(trim(author)) > 0),
+        idempotency_key text unique,
+        created_at text not null
+      ) strict;
+      create index stock_movement_item on stock_movement (item_id, occurred_on);
+    `,
+  },
+  {
+    version: 7,
+    name: 'local_da_propriedade',
+    sql: `
+      alter table farm add column lat_micro integer;
+      alter table farm add column lon_micro integer;
+    `,
+  },
 ];

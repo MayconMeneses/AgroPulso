@@ -2,6 +2,7 @@ import { migrations } from './app/migrations/migrations.js';
 import { migrate } from './app/migrations/runner.js';
 import { openBrowserSqlite } from './app/storage/browser-sqlite.js';
 import { cadastros } from './views-cadastros.js';
+import { estoque } from './views-estoque.js';
 import { painel } from './views-painel.js';
 import { backup, relatorio } from './views-relatorio.js';
 import { registrar } from './views-registrar.js';
@@ -9,7 +10,7 @@ import { safras } from './views-safras.js';
 import { fail, form, h, icon, say } from './ui.js';
 
 // [id, rótulo completo, rótulo curto da barra]
-const TABS = [['painel', 'Painel', 'Painel'], ['registrar', 'Registrar', 'Registrar'], ['safras', 'Safras', 'Safras'], ['cadastros', 'Cadastros', 'Cadastros'], ['relatorio', 'Relatório', 'Relatório'], ['backup', 'Cópia dos dados', 'Cópia']];
+const TABS = [['painel', 'Painel', 'Painel'], ['registrar', 'Registrar', 'Registrar'], ['safras', 'Safras', 'Safras'], ['estoque', 'Estoque', 'Estoque'], ['cadastros', 'Cadastros', 'Cadastros'], ['relatorio', 'Relatório e cópia dos dados', 'Relatório']];
 const main = document.getElementById('main');
 let db;
 let tab = 'painel';
@@ -50,7 +51,8 @@ function drawNav() {
   document.getElementById('section-title').textContent = TABS.find(([id]) => id === tab)[1];
 }
 
-const VIEWS = { painel, registrar: (d, r) => registrar(d, r, author), safras, cadastros, relatorio, backup };
+// Relatório e cópia de segurança dividem a mesma aba, para a barra de baixo caber em telas de 320 px.
+const VIEWS = { painel, registrar: (d, r) => registrar(d, r, author), safras, estoque: (d, r) => estoque(d, r, author), cadastros, relatorio: async (d, r) => [...(await relatorio(d, r)), ...(await backup(d, r))] };
 
 async function render() {
   drawNav();
@@ -88,6 +90,32 @@ async function ownDatabase() {
   });
 }
 
+// Atualização: o navegador busca sw.js de novo ao abrir, ao voltar para o app e ao reconectar. Se houver versão nova,
+// ela baixa em segundo plano e o app mostra um aviso; só troca de código quando a pessoa toca em "Atualizar".
+// Os dados já estão gravados no aparelho a cada registro, então recarregar não perde nada.
+function watchUpdates() {
+  if (!('serviceWorker' in navigator)) return;
+  const box = document.getElementById('update');
+  let accepted = false;
+  const offer = (worker) => {
+    box.replaceChildren(h('span', {}, 'Há uma versão nova do AgroPulso.'), h('button', { class: 'btn primary', type: 'button', onclick: () => { accepted = true; box.hidden = true; worker.postMessage({ type: 'SKIP_WAITING' }); } }, 'Atualizar agora'), h('button', { class: 'btn ghost', type: 'button', onclick: () => { box.hidden = true; } }, 'Depois'));
+    box.hidden = false;
+  };
+  navigator.serviceWorker.register('sw.js').then((reg) => {
+    if (reg.waiting && navigator.serviceWorker.controller) offer(reg.waiting);
+    reg.addEventListener('updatefound', () => {
+      const w = reg.installing;
+      w?.addEventListener('statechange', () => { if (w.state === 'installed' && navigator.serviceWorker.controller) offer(w); });
+    });
+    const check = () => { if (navigator.onLine) reg.update().catch(() => {}); };
+    addEventListener('online', check);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) check(); });
+    setInterval(check, 60 * 60 * 1000);
+  }).catch((e) => console.warn('Sem modo offline:', e));
+  // Só recarrega depois que a pessoa aceitou: a primeira instalação também troca o controlador e não deve recarregar.
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (accepted) location.reload(); });
+}
+
 async function start() {
   if (!(await ownDatabase())) {
     main.replaceChildren(h('p', { class: 'callout' }, 'O AgroPulso já está aberto em outra aba ou janela. Feche esta e use a outra, para não perder registros.'));
@@ -100,7 +128,7 @@ async function start() {
     if (navigator.storage?.persist) navigator.storage.persist().catch(() => {});
     await askAuthor();
     await render();
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch((e) => console.warn('Sem modo offline:', e));
+    watchUpdates();
   } catch (e) {
     console.error(e);
     main.replaceChildren(h('p', { class: 'callout' }, 'Não foi possível abrir o banco de dados deste aparelho. Nada foi apagado.'));

@@ -107,6 +107,10 @@ test('SEC: página tem política de conteúdo (CSP) restritiva e sem scripts de 
   assert.match(csp, /default-src 'self'/);
   assert.match(csp, /object-src 'none'/);
   assert.match(csp, /connect-src 'self'/);
+  // Só dois serviços externos, ambos opcionais e acionados por botão: previsão (Open-Meteo) e quadros do mapa (OpenStreetMap)
+  assert.equal(/connect-src ([^;]+)/.exec(csp)?.[1], "'self' https://api.open-meteo.com");
+  assert.equal(/img-src ([^;]+)/.exec(csp)?.[1], "'self' data: blob: https://tile.openstreetmap.org");
+  assert.doesNotMatch(csp, /default-src[^;]*https?:|script-src[^;]*https?:|style-src[^;]*https?:/);
   // 'wasm-unsafe-eval' é exigido só para carregar o SQLite em WebAssembly; 'unsafe-eval' e 'unsafe-inline' ficam proibidos
   assert.doesNotMatch(csp, /'unsafe-inline'|'unsafe-eval'/);
   assert.match(csp, /script-src 'self' 'wasm-unsafe-eval'/);
