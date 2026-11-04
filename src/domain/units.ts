@@ -12,7 +12,7 @@ export interface Unit {
   kind: UnitKind;
 }
 
-// RN-AG-019: unidades locais (tarefa, saca, caixa...) são cadastradas por quem usa; nenhuma vem pronta.
+// RN-AG-019: as unidades são de quem usa. Só nomes comuns são oferecidos uma vez (defaults.ts), sem fator de conversão.
 export async function createUnit(db: Database, input: { name: string; kind: UnitKind }): Promise<Unit> {
   const name = input.name.trim();
   if (name === '') throw new DomainError('invalido', 'Informe o nome da unidade');

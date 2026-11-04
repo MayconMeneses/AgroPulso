@@ -1,4 +1,5 @@
 import { addCommonActivityTypes } from './app/domain/activities.js';
+import { addCommonCategoriesAndUnits } from './app/domain/defaults.js';
 import { migrations } from './app/migrations/migrations.js';
 import { migrate } from './app/migrations/runner.js';
 import { openBrowserSqlite } from './app/storage/browser-sqlite.js';
@@ -127,6 +128,7 @@ async function start() {
     db = await openBrowserSqlite(SQL);
     await migrate(db, migrations);
     await addCommonActivityTypes(db);
+    await addCommonCategoriesAndUnits(db);
     if (navigator.storage?.persist) navigator.storage.persist().catch(() => {});
     await askAuthor();
     await render();
