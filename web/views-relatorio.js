@@ -1,6 +1,7 @@
 import { exportBackup } from './app/backup/export.js';
 import { importBackup } from './app/backup/import.js';
 import { buildReport, toCsv } from './app/reports/csv.js';
+import { buildLaborReport } from './app/reports/labor.js';
 import { toPdf } from './app/reports/pdf.js';
 import { download, form, h, icon, say } from './ui.js';
 
@@ -11,12 +12,16 @@ export async function relatorio(db) {
     { name: 'cycle', label: 'Safra', type: 'select', options: cycles.map((c) => [c.id, `${c.farm} · ${c.crop}`]) },
     { name: 'from', label: 'Do dia', hint: 'opcional', type: 'date' },
     { name: 'to', label: 'Até o dia', hint: 'opcional', type: 'date' },
+    { name: 'kind', label: 'Qual relatório', type: 'select', options: [['obra', 'Mão de obra por pessoa']], placeholder: 'Relatório completo da safra' },
     { name: 'fmt', label: 'Formato', type: 'select', options: [['pdf', 'PDF'], ['csv', 'Planilha CSV']], placeholder: 'PDF' },
   ], 'Gerar relatório', async (v) => {
     if (!v.cycle) { say('Escolha a safra.', 'err'); return; }
-    const data = await buildReport(db, { cycleId: v.cycle, from: v.from || undefined, to: v.to || undefined });
-    if (v.fmt === 'csv') download('relatorio-agropulso.csv', new TextEncoder().encode(toCsv(data)), 'text/csv;charset=utf-8');
-    else download('relatorio-agropulso.pdf', toPdf(data), 'application/pdf');
+    const filters = { cycleId: v.cycle, from: v.from || undefined, to: v.to || undefined };
+    const obra = v.kind === 'obra';
+    const data = obra ? await buildLaborReport(db, filters) : await buildReport(db, filters);
+    const base = obra ? 'mao-de-obra-agropulso' : 'relatorio-agropulso';
+    if (v.fmt === 'csv') download(`${base}.csv`,  new TextEncoder().encode(toCsv(data)), 'text/csv;charset=utf-8');
+    else download(`${base}.pdf`, toPdf(data), 'application/pdf');
     say('Relatório gerado. Ele repete os filtros, as unidades e o que ficou fora do cálculo.');
   });
   return [h('section', { class: 'panel' }, h('h2', {}, 'Relatório'), f)];

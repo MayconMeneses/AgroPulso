@@ -25,7 +25,7 @@ export interface FinancialEntry {
   version: number;
 }
 
-// RN-AG-019: categorias de custo (adubo, água, mão de obra...) são do usuário; nenhuma vem pronta.
+// RN-AG-019: as categorias de custo são do usuário. Só nomes comuns são oferecidos uma vez (defaults.ts).
 export async function createCostCategory(db: Database, input: { name: string }): Promise<CostCategory> {
   const name = input.name.trim();
   if (name === '') throw new DomainError('invalido', 'Informe o nome da categoria');
