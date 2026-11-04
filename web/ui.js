@@ -14,7 +14,7 @@ export function h(tag, attrs = {}, ...children) {
 }
 
 const NS = 'http://www.w3.org/2000/svg';
-function svg(tag, attrs = {}) {
+export function svg(tag, attrs = {}) {
   const el = document.createElementNS(NS, tag);
   for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, String(v));
   return el;
@@ -128,6 +128,18 @@ export function openSheet(title, build) {
   document.body.append(dlg);
   dlg.showModal();
   return close;
+}
+
+// Etiqueta de origem do número: o que a pessoa digitou, o que o app calculou, o que é estimativa e o que veio de fora.
+const TAGS = {
+  digitado: ['Digitado', 'Valor que você mesmo registrou'],
+  calculado: ['Calculado', 'Conta feita pelo app a partir do que você registrou'],
+  estimado: ['Estimado', 'Estimativa, não é medida nem dado registrado'],
+  externo: ['Fonte externa', 'Dado de um serviço de fora, que pode errar'],
+};
+export function tag(kind) {
+  const [label, hint] = TAGS[kind];
+  return h('span', { class: `tag tag-${kind}`, title: hint }, label);
 }
 
 export function chip(label, active, onclick) {

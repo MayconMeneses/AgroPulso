@@ -1,12 +1,12 @@
 import { formatMoney, formatQuantity } from './app/domain/decimal.js';
 import { dashboard } from './app/reports/dashboard.js';
 import { listFarms } from './app/domain/farms.js';
-import { chip, h, lines, ring, STATUS, table } from './ui.js';
+import { chip, h, lines, ring, STATUS, table, tag } from './ui.js';
 import { localBlock } from './views-local.js';
 
 let selected = null;
 
-const stat = (label, value, note, extra = '') => h('div', { class: `panel stat half ${extra}`.trim() }, h('span', { class: 'eyebrow' }, label), h('div', { class: 'stat-value' }, value), note ? h('div', { class: 'stat-note muted small' }, note) : '');
+const stat = (label, value, note, extra = '', kind = 'digitado') => h('div', { class: `panel stat half ${extra}`.trim() }, h('span', { class: 'eyebrow' }, label, tag(kind)), h('div', { class: 'stat-value' }, value), note ? h('div', { class: 'stat-note muted small' }, note) : '');
 
 // Painel em mosaico: resultado da safra em destaque, números em blocos e uma linha por mês.
 export async function painel(db, rerender) {
@@ -23,14 +23,15 @@ export async function painel(db, rerender) {
     : '';
   const hero = h('section', { class: 'panel hero' },
     h('div', { class: 'hero-main' },
-      h('div', { class: 'eyebrow' }, `${cur.farmName} · ${cur.cropName} · ${STATUS[cur.status]}`),
+      h('div', { class: 'eyebrow' }, `${cur.farmName} · ${cur.cropName} · ${STATUS[cur.status]}`, tag('calculado')),
       r.resultadoParcialCents === null
         ? h('div', { class: 'hero-value off' }, 'Resultado parcial indisponível')
         : h('div', { class: 'hero-value', 'aria-label': `Resultado parcial ${formatMoney(r.resultadoParcialCents)}` }, formatMoney(r.resultadoParcialCents)),
       h('div', { class: 'muted small' }, 'Resultado parcial: vendas registradas menos o custo registrado. Não é lucro.')),
     h('div', { class: 'hero-side' }, ring(pct, pct === null ? '—' : `${Math.round(pct * 100)}%`, 'recebido')));
 
-  const colheita = h('section', { class: 'panel alt w5' }, h('h2', {}, 'Colheita'),
+  const colheita = h('section', { class: 'panel alt w5' }, h('h2', {}, 'Colheita', tag('digitado')),
+    r.estimativaColheita ? h('p', { class: 'small' }, 'Estimativa sua: ', h('strong', {}, `${formatQuantity(r.estimativaColheita.quantityMicro)} ${r.estimativaColheita.unitName}`), tag('estimado')) : '',
     r.colhido.length ? h('ul', { class: 'timeline' }, r.colhido.map((x) => h('li', {}, h('strong', {}, formatQuantity(x.quantityMicro)), ` ${x.unitName} colhidos`))) : h('p', { class: 'muted' }, 'Sem colheita registrada.'),
     (r.produtividade ?? []).map((p) => h('p', {}, h('strong', {}, formatQuantity(p.valueMicro)), ` ${p.harvestUnitName} por ${p.areaUnitName} (área declarada)`)),
     r.produtividade === null && r.semProdutividadeMotivo ? h('p', { class: 'muted small' }, `Produtividade indisponível: ${r.semProdutividadeMotivo}.`) : '');
@@ -53,7 +54,7 @@ export async function painel(db, rerender) {
       stat('Custo registrado', formatMoney(r.custoRegistradoCents), `Mão de obra familiar (fora do custo): ${formatMoney(r.maoDeObraFamiliarCents)}`),
       stat('Vendas registradas', formatMoney(r.receitaVendasCents)),
       stat('Recebido', formatMoney(r.recebidoCents)),
-      stat('A receber', formatMoney(r.aReceberCents), '', 'alt'),
+      stat('A receber', formatMoney(r.aReceberCents), '', 'alt', 'calculado'),
       grafico, colheita, pend),
     await localBlock(db, (await listFarms(db)).filter((f) => f.id === cur.farmId), rerender),
     ...r.avisos.map((a) => h('div', { class: 'callout' }, a)), // espalhado: replaceChildren não aceita lista dentro de lista

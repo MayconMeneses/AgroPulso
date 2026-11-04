@@ -97,3 +97,16 @@ details > summary { cursor: pointer; min-height: 44px; display: flex; align-item
 .map img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .map-pin { position: absolute; left: var(--x); top: var(--y); width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; background: var(--primary); border: 3px solid #fff; box-shadow: 0 0 0 4px var(--glow), 0 2px 8px #0008; }
 .cad-grid { margin-top: 14px; }
+/* Etiqueta de origem do número */
+.tag { display: inline-block; margin-left: 8px; padding: 1px 8px; border: 1px solid var(--line); border-radius: 99px; font: 600 .6rem var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); vertical-align: middle; white-space: nowrap; }
+.tag-calculado { color: var(--accent); border-color: var(--accent); }
+.tag-estimado { color: var(--warn); border-color: var(--warn); }
+.tag-externo { color: var(--text); }
+/* Contorno do talhão sobre o mapa (coordenadas em % da grade) */
+.map-over { position: absolute; inset: 0; width: 100%; height: 100%; }
+.map-over polygon { fill: var(--glow); stroke: var(--primary); stroke-width: .6; vector-effect: non-scaling-stroke; stroke-width: 2; stroke-linejoin: round; }
+.map-over circle { fill: var(--primary); stroke: #fff; stroke-width: .3; }
+.map.draw { cursor: crosshair; touch-action: manipulation; }
+.entry { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.entry .grow { flex: 1 1 180px; min-width: 0; }
+.entry.void .grow { text-decoration: line-through; color: var(--muted); }

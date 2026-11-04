@@ -39,6 +39,29 @@ export async function createActivityType(db: Database, input: { name: string; is
   return t;
 }
 
+// Tipos comuns de lavoura, oferecidos uma única vez no primeiro uso para a lista não começar vazia. São só nomes: continuam
+// sendo do usuário (RN-AG-019), que pode acrescentar os seus. Só "Aplicação de defensivo" leva o aviso de aplicação (RN-AG-017).
+// Quem já tem um tipo com o mesmo nome não recebe repetido, e a marca no banco impede de oferecer de novo.
+const COMMON_TYPES: [string, boolean][] = [
+  ['Preparo do solo', false], ['Plantio', false], ['Adubação', false], ['Irrigação', false], ['Capina', false],
+  ['Aplicação de defensivo', true], ['Poda', false], ['Colheita', false], ['Transporte', false], ['Observação de campo', false],
+];
+export async function addCommonActivityTypes(db: Database): Promise<number> {
+  return db.transaction(async () => {
+    if ((await db.all("select 1 as ok from app_meta where key = 'tipos_atividade_iniciais'")).length > 0) return 0;
+    let added = 0;
+    for (const [name, isApplication] of COMMON_TYPES) {
+      if ((await db.all('select 1 as ok from activity_type where lower(name) = lower(?)', [name])).length > 0) continue;
+      const id = crypto.randomUUID();
+      await db.run('insert into activity_type (id, name, is_application) values (?, ?, ?)', [id, name, isApplication ? 1 : 0]);
+      await recordEvent(db, { type: 'activity_type.created', resource: 'activity_type', resourceId: id, reason: 'tipo comum oferecido no primeiro uso', after: { name } });
+      added++;
+    }
+    await db.run("insert into app_meta (key, value) values ('tipos_atividade_iniciais', ?)", [new Date().toISOString()]);
+    return added;
+  });
+}
+
 export async function listActivityTypes(db: Database): Promise<ActivityType[]> {
   const rows = await db.all('select id, name, is_application from activity_type order by name, id');
   return rows.map((r) => ({ id: String(r.id), name: String(r.name), isApplication: Number(r.is_application) === 1 }));

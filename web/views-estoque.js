@@ -2,7 +2,7 @@ import { formatQuantity, parseQuantity } from './app/domain/decimal.js';
 import { listFarms } from './app/domain/farms.js';
 import { createStockItem, listMovements, listStockItems, recordMovement } from './app/domain/stock.js';
 import { listUnits } from './app/domain/units.js';
-import { chip, form, h, icon, openSheet, say } from './ui.js';
+import { chip, form, h, icon, openSheet, say, tag } from './ui.js';
 
 let selectedFarm = '';
 const KINDS = { ENTRADA: 'Entrada', SAIDA: 'Saída', AJUSTE: 'Ajuste' };
@@ -57,7 +57,7 @@ export async function estoque(db, rerender, author) {
 
   const card = (item, i) => h('section', { class: `panel ${i % 2 ? 'alt' : ''}`.trim() },
     h('div', { class: 'eyebrow' }, item.name),
-    h('div', { class: 'stat-value' }, `${formatQuantity(item.balanceMicro)} ${unitName.get(item.unitId)}`),
+    h('div', { class: 'stat-value' }, `${formatQuantity(item.balanceMicro)} ${unitName.get(item.unitId)}`, tag('calculado')),
     item.low ? h('p', { class: 'callout' }, item.balanceMicro === 0 ? 'Acabou. Hora de repor.' : `Estoque baixo (mínimo ${formatQuantity(item.minMicro)}).`) : '',
     h('div', { class: 'row' },
       h('button', { class: 'btn', type: 'button', onclick: () => mover(item, 'ENTRADA') }, 'Entrada'),

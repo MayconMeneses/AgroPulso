@@ -34,7 +34,7 @@ export async function dashboard(db: Database): Promise<Dashboard> {
   const toReceive = await db.all(
     'select coalesce((select sum(amount_cents) from sale), 0) - coalesce((select sum(amount_cents) from sale_receipt), 0) as v',
   );
-  const exp = await db.all("select substr(occurred_on, 1, 7) as m, sum(amount_cents) as v from financial_entry where kind = 'DESPESA' and family_labor = 0 group by m");
+  const exp = await db.all("select substr(occurred_on, 1, 7) as m, sum(amount_cents) as v from financial_entry where voided_at is null and kind = 'DESPESA' and family_labor = 0 group by m");
   const sal = await db.all('select substr(sold_on, 1, 7) as m, sum(amount_cents) as v from sale group by m');
   const months = new Map<string, { expensesCents: number; salesCents: number }>();
   for (const r of exp) months.set(String(r.m), { expensesCents: Number(r.v), salesCents: 0 });

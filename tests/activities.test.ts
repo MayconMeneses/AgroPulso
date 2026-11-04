@@ -119,3 +119,17 @@ test('backup preserva atividades e fotos byte a byte', async () => {
   assert.equal((await getActivity(destino, a.id))?.author, 'M');
   assert.equal(await exportBackup(destino), arquivo);
 });
+
+test('tipos comuns de atividade: oferecidos uma vez, sem repetir nome existente, só um leva o aviso de aplicação', async () => {
+  const { addCommonActivityTypes, createActivityType, listActivityTypes } = await import('../src/domain/activities.ts');
+  const db = await freshDb();
+  await createActivityType(db, { name: 'plantio' });
+  const n = await addCommonActivityTypes(db);
+  const types = await listActivityTypes(db);
+  assert.equal(n, 9);
+  assert.equal(types.length, 10);
+  assert.equal(types.filter((t) => t.name.toLowerCase() === 'plantio').length, 1);
+  assert.deepEqual(types.filter((t) => t.isApplication).map((t) => t.name), ['Aplicação de defensivo']);
+  assert.equal(await addCommonActivityTypes(db), 0);
+  assert.equal((await listActivityTypes(db)).length, 10);
+});

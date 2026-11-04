@@ -1,4 +1,5 @@
 import { DomainError } from './errors.ts';
+import { gridFor, toPct } from './geo.ts';
 import type { FarmLocation } from './location.ts';
 
 // Recursos que só existem com internet: previsão do tempo (Open-Meteo) e mapa (OpenStreetMap).
@@ -53,22 +54,17 @@ export function parseForecast(json: unknown): ForecastDay[] {
 
 // Mapa sem biblioteca: 3 x 3 quadros do OpenStreetMap em volta do ponto, mais a posição do marcador (em % da grade).
 export function mapTiles(loc: FarmLocation, zoom = 15): { tiles: { url: string; col: number; row: number }[]; markerX: number; markerY: number } {
-  const lat = loc.latMicro / 1_000_000;
-  const lon = loc.lonMicro / 1_000_000;
+  const g = gridFor(loc, zoom);
   const n = 2 ** zoom;
-  const rad = (lat * Math.PI) / 180;
-  const x = ((lon + 180) / 360) * n;
-  const y = ((1 - Math.log(Math.tan(rad) + 1 / Math.cos(rad)) / Math.PI) / 2) * n;
-  const cx = Math.floor(x);
-  const cy = Math.floor(y);
   const tiles: { url: string; col: number; row: number }[] = [];
   for (let row = 0; row < 3; row++) {
     for (let col = 0; col < 3; col++) {
-      const tx = (((cx + col - 1) % n) + n) % n;
-      const ty = cy + row - 1;
+      const tx = (((g.cx + col - 1) % n) + n) % n;
+      const ty = g.cy + row - 1;
       if (ty < 0 || ty >= n) continue;
       tiles.push({ url: `${TILE_HOST}/${zoom}/${tx}/${ty}.png`, col, row });
     }
   }
-  return { tiles, markerX: ((1 + (x - cx)) / 3) * 100, markerY: ((1 + (y - cy)) / 3) * 100 };
+  const m = toPct(g, loc);
+  return { tiles, markerX: m.x, markerY: m.y };
 }

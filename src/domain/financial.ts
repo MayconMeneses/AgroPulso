@@ -76,7 +76,33 @@ export async function getEntry(db: Database, id: string): Promise<FinancialEntry
 }
 
 export async function listEntries(db: Database, farmId: string): Promise<FinancialEntry[]> {
-  return (await db.all(`select ${COLS} from financial_entry where farm_id = ? order by occurred_on, id`, [farmId])).map(toEntry);
+  return (await db.all(`select ${COLS} from financial_entry where farm_id = ? and voided_at is null order by occurred_on, id`, [farmId])).map(toEntry);
+}
+
+export interface EntryRow extends FinancialEntry {
+  voidedAt: string | null;
+  voidReason: string | null;
+}
+
+// Para a tela de lançamentos de uma safra: mostra também os anulados, riscados, para o histórico ficar visível.
+export async function listCycleEntries(db: Database, cycleId: string): Promise<EntryRow[]> {
+  const rows = await db.all(`select ${COLS}, voided_at, void_reason from financial_entry where cycle_id = ? order by occurred_on, id`, [cycleId]);
+  return rows.map((r) => ({ ...toEntry(r), voidedAt: str(r.voided_at), voidReason: str(r.void_reason) }));
+}
+
+// "Apagar" um lançamento é anular: ele sai das contas, dos painéis e dos relatórios, mas continua gravado com o motivo,
+// a data e quem era o valor, para o histórico não se perder (RN-AG-003). Não há como desfazer pela tela; lança-se de novo.
+export async function voidEntry(db: Database, id: string, version: number, reason: string): Promise<void> {
+  if (reason.trim() === '') throw new DomainError('invalido', 'Informe o motivo de anular o lançamento');
+  await db.transaction(async () => {
+    const cur = await getEntry(db, id);
+    if (!cur) throw new DomainError('nao_encontrado', 'Lançamento não encontrado');
+    if ((await db.all('select 1 as ok from financial_entry where id = ? and voided_at is not null', [id])).length > 0) throw new DomainError('transicao_invalida', 'Este lançamento já foi anulado');
+    if (cur.version !== version) throw new DomainError('conflito_de_versao', 'Este lançamento foi alterado por outra ação. Recarregue e tente de novo');
+    if (cur.cycleId) await assertCycleWritable(db, cur.cycleId, reason);
+    await db.run('update financial_entry set voided_at = ?, void_reason = ?, version = version + 1 where id = ? and version = ?', [new Date().toISOString(), reason.trim(), id, version]);
+    await recordEvent(db, { type: 'expense.voided', resource: 'financial_entry', resourceId: id, reason: reason.trim(), before: { amountCents: cur.amountCents, kind: cur.kind, occurredOn: cur.occurredOn } });
+  });
 }
 
 // RF-AG-005 / RF-AG-008: valor exato em centavos. Sem safra, o custo fica "não alocado" e não entra no resultado da safra.
@@ -165,6 +191,7 @@ export async function correctEntry(
     const cur = await getEntry(db, id);
     if (!cur) throw new DomainError('nao_encontrado', 'Lançamento não encontrado');
     if (cur.version !== version) throw new DomainError('conflito_de_versao', 'Este lançamento foi alterado por outra ação. Recarregue e tente de novo');
+    if ((await db.all('select 1 as ok from financial_entry where id = ? and voided_at is not null', [id])).length > 0) throw new DomainError('transicao_invalida', 'Lançamento anulado não pode ser corrigido');
     const amount = change.amountCents ?? cur.amountCents;
     const paidOn = change.paidOn === undefined ? cur.paidOn : change.paidOn;
     await db.run('update financial_entry set amount_cents = ?, paid_on = ?, version = version + 1 where id = ? and version = ?', [amount, paidOn, id, version]);
