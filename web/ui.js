@@ -50,6 +50,29 @@ export function icon(name) {
   return s;
 }
 
+// Símbolo animado da marca: o ponto luminoso corre pelo traço de pulso, no mesmo ritmo do brilho (3,2 s).
+// Parado para quem pede menos movimento (CSS esconde .dot).
+const PULSE = 'M 50 319 C 200 319 380 319 462 319 C 478 319 483 304 491 287 C 499 301 506 318 514 328 C 520 324 523 324 528 325 C 536 344 541 365 548 383 C 566 331 584 260 601 213 C 615 261 627 331 638 368 C 648 348 657 320 665 304 C 675 309 683 318 695 319 C 785 319 900 319 1030 319';
+let markSeq = 0;
+export function animatedMark() {
+  const id = `glow-${++markSeq}`;
+  const s = svg('svg', { class: 'mark', viewBox: '0 0 1080 546', role: 'img', 'aria-label': 'AgroPulso', focusable: 'false' });
+  const filter = svg('filter', { id, x: '-300%', y: '-300%', width: '700%', height: '700%' });
+  filter.append(svg('feGaussianBlur', { stdDeviation: 9, result: 'b' }));
+  const merge = svg('feMerge');
+  merge.append(svg('feMergeNode', { in: 'b' }), svg('feMergeNode', { in: 'SourceGraphic' }));
+  filter.append(merge);
+  const defs = svg('defs');
+  defs.append(filter);
+  s.append(defs, svg('image', { href: 'icons/simbolo.webp', x: 0, y: 0, width: 1080, height: 546 }));
+  for (const [r, fill, opacity] of [[11, '#35ff78', '.38'], [5.2, '#f6fff8', '1']]) {
+    const dot = svg('circle', { class: 'dot', r, fill, opacity, filter: `url(#${id})` });
+    dot.append(svg('animateMotion', { dur: '3.2s', repeatCount: 'indefinite', rotate: 0, path: PULSE }));
+    s.append(dot);
+  }
+  return s;
+}
+
 // Anel de progresso. fraction entre 0 e 1, ou null quando não há base para calcular.
 export function ring(fraction, big, small) {
   const R = 52;
