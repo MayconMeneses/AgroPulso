@@ -9,7 +9,7 @@ export interface Farm {
   version: number;
 }
 
-// RN-AG-022: o fuso é guardado por propriedade e não tem valor padrão (o Nordeste tem mais de um).
+// RN-AG-022: o fuso é guardado por propriedade e não tem valor padrão (o Brasil tem mais de um).
 export function assertTimezone(timezone: string): void {
   try {
     new Intl.DateTimeFormat('pt-BR', { timeZone: timezone });
@@ -34,12 +34,6 @@ export async function createFarm(db: Database, input: { name: string; timezone: 
     await recordEvent(db, { type: 'farm.created', resource: 'farm', resourceId: farm.id, after: { name, timezone: farm.timezone } });
   });
   return farm;
-}
-
-export async function getFarm(db: Database, id: string): Promise<Farm | null> {
-  const rows = await db.all('select id, name, timezone, version from farm where id = ?', [id]);
-  const r = rows[0];
-  return r ? { id: String(r.id), name: String(r.name), timezone: String(r.timezone), version: Number(r.version) } : null;
 }
 
 export async function listFarms(db: Database): Promise<Farm[]> {

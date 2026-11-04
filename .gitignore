@@ -5,3 +5,5 @@ node_modules/
 # PDF do prompt mestre: fica fora do repositório público
 *.pdf
 dist/
+
+.claude/

@@ -46,7 +46,7 @@ O Prompt Mestre (§27, §30) manda começar pela Fase 0 e gerar os documentos de
 | Termo de uso | PARCIAL | minuta feita; LGPD arts. 41/46–48/52 e Resolução ANPD 2/2022 não confirmados; sem revisão de advogado; campos comerciais em DP-021 |
 
 ## Histórico das rodadas (2026-11-03)
-- **Segunda:** dono delegou as pendências "como se fosse para o Brasil", adaptável a toda a agricultura; DIRECAO_VISUAL criado; RN-AG-019..022 e RF-AG-016 no PRD; foco no Nordeste (DP-020); o dono criaria o repositório.
+- **Segunda:** dono delegou as pendências "como se fosse para o Brasil", adaptável a toda a agricultura; DIRECAO_VISUAL criado; RN-AG-019..022 e RF-AG-016 no PRD; foco regional (DP-020, retirado depois pelo dono); o dono criaria o repositório.
 - **Terceira:** caderno da Emater-DF, TCC da Unesp e TCC da UFPB (n=16) lidos; Sicredi e artigo de Guanambi devolveram 403 (não lidos); sem pessoas reais para entrevistas, substituídas por pesquisa; projeto não será hospedado.
 - **Quarta:** app local, hospedagem só com clientes; ADR-001, 003, 005, 007 e 011 reescritas; minuta do termo de uso (Maycon Meneses, pessoa física, sem CNPJ); DATA_MODEL, THREAT_MODEL e ACCESS_MATRIX ajustados ao perfil único.
 - Contagem das decisões pendentes: 21 itens, 13 resolvidas, 6 parciais, 2 abertas.

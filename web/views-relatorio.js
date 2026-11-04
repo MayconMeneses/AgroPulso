@@ -1,9 +1,10 @@
+import { decryptBackup, encryptBackup, isEncryptedBackup, MIN_PASSPHRASE } from './app/backup/crypto.js';
 import { exportBackup } from './app/backup/export.js';
-import { importBackup } from './app/backup/import.js';
+import { importBackup, MAX_BACKUP_CHARS } from './app/backup/import.js';
 import { buildReport, toCsv } from './app/reports/csv.js';
 import { buildLaborReport } from './app/reports/labor.js';
 import { toPdf } from './app/reports/pdf.js';
-import { download, form, h, icon, say } from './ui.js';
+import { download, fail, form, h, icon, say } from './ui.js';
 
 export async function relatorio(db) {
   const cycles = await db.all('select c.id, t.name as crop, f.name as farm from crop_cycle c join crop_type t on t.id = c.crop_type_id join farm f on f.id = c.farm_id order by f.name, c.created_at');
@@ -34,19 +35,38 @@ export async function backup(db, rerender) {
   const aviso = persisted ? '' : h('div', { class: 'callout' }, 'Este navegador não garantiu a guarda permanente dos dados. Ele pode apagá-los se faltar espaço ou se você limpar os dados do site. Baixe uma cópia com frequência.');
   const restore = form([
     { name: 'file', label: 'Arquivo de backup (.json)', type: 'file' },
+    { name: 'pass', label: 'Senha do backup', hint: 'só se a cópia foi protegida com senha', type: 'password' },
     { name: 'sure', label: 'Entendo que isto SUBSTITUI todos os dados deste aparelho', type: 'checkbox' },
   ], 'Restaurar backup', async (v) => {
     if (!v.file) { say('Escolha o arquivo.', 'err'); return; }
     if (!v.sure) { say('Marque a confirmação para substituir os dados.', 'err'); return; }
-    await importBackup(db, await v.file.text());
+    if (v.file.size > MAX_BACKUP_CHARS) { say('O arquivo é grande demais para ser um backup do AgroPulso.', 'err'); return; }
+    let text = await v.file.text();
+    if (isEncryptedBackup(text)) {
+      if (!v.pass) { say('Este backup tem senha. Digite a senha para restaurar.', 'err'); return; }
+      text = await decryptBackup(text, v.pass);
+    }
+    await importBackup(db, text);
     say('Backup restaurado.');
     await rerender();
+  });
+  const today = () => new Date().toISOString().slice(0, 10);
+  const protectedCopy = form([
+    { name: 'pass', label: 'Senha', hint: `pelo menos ${MIN_PASSPHRASE} caracteres`, type: 'password' },
+    { name: 'again', label: 'Repita a senha', type: 'password' },
+  ], 'Baixar cópia protegida', async (v) => {
+    if (v.pass !== v.again) { say('As duas senhas não são iguais.', 'err'); return; }
+    const text = await encryptBackup(await exportBackup(db), v.pass);
+    download(`agropulso-backup-protegido-${today()}.json`, new TextEncoder().encode(text), 'application/json');
+    say('Cópia protegida gerada. Anote a senha: sem ela, não existe como abrir este arquivo.');
   });
   return [h('div', { class: 'bento' },
     h('section', { class: 'panel w6' }, h('h2', {}, 'Guardar uma cópia'), aviso,
       h('p', {}, 'Seus dados ficam só neste aparelho. Se ele quebrar ou o navegador limpar os dados, sem cópia não dá para recuperar.'),
       h('button', { class: 'btn primary', type: 'button', onclick: async () => {
-        try { download(`agropulso-backup-${new Date().toISOString().slice(0, 10)}.json`, new TextEncoder().encode(await exportBackup(db)), 'application/json'); say('Cópia gerada. Guarde o arquivo em local seguro: ele contém seus dados financeiros.'); } catch (e) { console.error(e); say('Não foi possível gerar a cópia.', 'err'); }
-      } }, icon('backup'), 'Baixar cópia dos dados')),
+        try { download(`agropulso-backup-${today()}.json`, new TextEncoder().encode(await exportBackup(db)), 'application/json'); say('Cópia gerada. Guarde o arquivo em local seguro: ele contém seus dados financeiros e não tem senha.'); } catch (e) { fail(e); }
+      } }, icon('backup'), 'Baixar cópia dos dados'),
+      h('details', {}, h('summary', {}, 'Cópia com senha (mais segura)'),
+        h('p', { class: 'muted small' }, 'O arquivo fica cifrado: quem pegar não lê nada sem a senha. Se você esquecer a senha, a cópia não abre mais, e eu não tenho como recuperar.'), protectedCopy)),
     h('section', { class: 'panel alt w6' }, h('h2', {}, 'Restaurar'), restore))];
 }

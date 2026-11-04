@@ -1,4 +1,4 @@
-import { formatCoordinate, getFarmLocation, parseCoordinate, setFarmLocation } from './app/domain/location.js';
+import { formatCoordinate, getFarmLocation, onlineFeaturesEnabled, parseCoordinate, setFarmLocation, setOnlineFeatures } from './app/domain/location.js';
 import { parseForecast, weatherUrl } from './app/domain/online.js';
 import { listPlots } from './app/domain/plots.js';
 import { chip, form, h, icon, openSheet, say, tag } from './ui.js';
@@ -46,6 +46,8 @@ export async function localBlock(db, farms, rerender) {
   const farm = farms.find((f) => f.id === selected);
   const loc = await getFarmLocation(db, farm.id);
   const plots = await listPlots(db, farm.id);
+  const online = await onlineFeaturesEnabled(db);
+  const toggle = async (on) => { await setOnlineFeatures(db, on); say(on ? 'Tempo e mapa ligados.' : 'Tempo e mapa desligados. O app não faz mais nenhum pedido pela internet para isso.'); await rerender(); };
   const body = h('div', { class: 'local-body' });
   const info = h('p', { class: 'muted small' });
 
@@ -101,7 +103,10 @@ export async function localBlock(db, farms, rerender) {
     }
   }
 
-  if (loc) {
+  if (!online) {
+    info.textContent = loc ? `Local: ${formatCoordinate(loc.latMicro)}, ${formatCoordinate(loc.lonMicro)}` : 'Local não informado.';
+    body.append(h('p', { class: 'callout' }, 'Tempo e mapa estão desligados: o app não usa a internet para isso e não pede a localização do aparelho.'));
+  } else if (loc) {
     info.textContent = `Local: ${formatCoordinate(loc.latMicro)}, ${formatCoordinate(loc.lonMicro)}`;
     if (navigator.onLine) { body.append(mapView(loc, farm.name, plots.filter((p) => p.outline).map((p) => p.outline))); showForecast(); } // sem await: a tela não espera a internet
     else body.append(h('p', { class: 'callout' }, 'Sem internet agora: o tempo e o mapa voltam quando conectar.'));
@@ -113,6 +118,7 @@ export async function localBlock(db, farms, rerender) {
     farms.length > 1 ? h('div', { class: 'chips', role: 'group', 'aria-label': 'Propriedade' }, farms.map((f) => chip(f.name, f.id === selected, () => { selected = f.id; rerender(); }))) : '',
     info, body,
     h('div', { class: 'row' }, h('button', { class: 'btn', type: 'button', onclick: definir }, loc ? 'Mudar o local' : 'Informar o local'),
-      loc && navigator.onLine ? plots.map((p) => h('button', { class: 'btn', type: 'button', onclick: () => desenharTalhao(db, loc, farm.name, p, rerender) }, `Contorno: ${p.name}`)) : ''),
+      h('button', { class: 'btn ghost', type: 'button', onclick: () => toggle(!online) }, online ? 'Desligar tempo e mapa' : 'Ligar tempo e mapa'),
+      online && loc && navigator.onLine ? plots.map((p) => h('button', { class: 'btn', type: 'button', onclick: () => desenharTalhao(db, loc, farm.name, p, rerender) }, `Contorno: ${p.name}`)) : ''),
     h('p', { class: 'muted small' }, AVISO));
 }

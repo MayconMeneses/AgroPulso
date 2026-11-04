@@ -204,6 +204,7 @@ export async function correctEntry(
     if (!cur) throw new DomainError('nao_encontrado', 'Lançamento não encontrado');
     if (cur.version !== version) throw new DomainError('conflito_de_versao', 'Este lançamento foi alterado por outra ação. Recarregue e tente de novo');
     if ((await db.all('select 1 as ok from financial_entry where id = ? and voided_at is not null', [id])).length > 0) throw new DomainError('transicao_invalida', 'Lançamento anulado não pode ser corrigido');
+    if ((await db.all('select 1 as ok from work_entry where financial_entry_id = ?', [id])).length > 0) throw new DomainError('transicao_invalida', 'Esta despesa veio de um dia de trabalho: anule o trabalho e lance de novo');
     const amount = change.amountCents ?? cur.amountCents;
     const paidOn = change.paidOn === undefined ? cur.paidOn : change.paidOn;
     await db.run('update financial_entry set amount_cents = ?, paid_on = ?, version = version + 1 where id = ? and version = ?', [amount, paidOn, id, version]);

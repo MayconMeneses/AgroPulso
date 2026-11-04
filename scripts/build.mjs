@@ -27,7 +27,7 @@ for await (const file of walk(join(root, 'src'))) {
 }
 const webScripts = [];
 for (const e of await readdir(join(root, 'web'))) {
-  if (e.endsWith('.js') && e !== 'sw.js') {
+  if (e.endsWith('.js') && e !== 'sw.js' && e !== 'guard.js') {
     modules.set(e, await readFile(join(root, 'web', e), 'utf8'));
     webScripts.push(e);
   }

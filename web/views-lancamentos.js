@@ -1,11 +1,11 @@
 import { listActivities } from './app/domain/activities.js';
-import { listAttachments, removeAttachment } from './app/domain/attachments.js';
+import { listAttachments, readAttachment, removeAttachment } from './app/domain/attachments.js';
 import { laborSummary, listWork, voidWork } from './app/domain/labor.js';
 import { formatMoney, formatQuantity, parseQuantity } from './app/domain/decimal.js';
 import { listCycleEntries, voidEntry } from './app/domain/financial.js';
 import { setHarvestEstimate } from './app/domain/production.js';
 import { listUnits } from './app/domain/units.js';
-import { fail, form, h, openSheet, say, tag } from './ui.js';
+import { download, fail, form, h, openSheet, say, tag } from './ui.js';
 
 // Lançamentos de uma safra: despesas e entradas (dá para anular com motivo) e anexos das atividades (dá para remover com
 // motivo). Nada é apagado de verdade no histórico: o que sai das contas continua registrado, riscado, com o motivo.
@@ -41,6 +41,7 @@ export function lancamentos(db, cycle, title, rerender) {
         for (const f of await listAttachments(db, a.id)) {
           any = true;
           parts.push(h('div', { class: 'entry' }, h('div', { class: 'grow' }, `${f.name} · ${a.occurredOn} · ${Math.max(1, Math.round(f.size / 1024))} KB`),
+            h('button', { class: 'btn ghost', type: 'button', onclick: async () => { try { const bytes = await readAttachment(db, f.id); if (bytes) download(f.name, bytes, f.mime); } catch (e) { fail(e); } } }, 'Baixar'),
             h('button', { class: 'btn ghost', type: 'button', onclick: () => reasonSheet('Remover anexo', (r) => removeAttachment(db, f.id, r)) }, 'Remover')));
         }
       }

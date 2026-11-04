@@ -42,11 +42,11 @@ test('o local da propriedade é opcional, validado, auditado e vai no backup', a
   assert.equal(await getFarmLocation(db, farm.id), null);
 });
 
-test('a URL da previsão leva só o local arredondado e o fuso da propriedade', () => {
+test('a URL da previsão leva só o local arredondado (~1 km) e o fuso da propriedade', () => {
   const u = new URL(weatherUrl({ latMicro: -8_047_562, lonMicro: -34_877_123 }, 'America/Recife'));
   assert.equal(u.origin, 'https://api.open-meteo.com');
-  assert.equal(u.searchParams.get('latitude'), '-8.0476');
-  assert.equal(u.searchParams.get('longitude'), '-34.8771');
+  assert.equal(u.searchParams.get('latitude'), '-8.05');
+  assert.equal(u.searchParams.get('longitude'), '-34.88');
   assert.equal(u.searchParams.get('timezone'), 'America/Recife');
 });
 

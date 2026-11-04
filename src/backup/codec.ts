@@ -19,7 +19,12 @@ function toBase64(bytes: Uint8Array): string {
 }
 
 function fromBase64(text: string): Uint8Array {
-  const binary = atob(text);
+  let binary: string;
+  try {
+    binary = atob(text);
+  } catch {
+    throw new BackupError('estrutura', 'Um anexo do backup está com o conteúdo danificado');
+  }
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
   return bytes;
@@ -40,7 +45,8 @@ export function decodeRow(row: unknown): Record<string, SqlValue> {
   if (typeof row !== 'object' || row === null || Array.isArray(row)) {
     throw new BackupError('estrutura', 'Linha inválida no arquivo de backup');
   }
-  const out: Record<string, SqlValue> = {};
+  // Sem protótipo: uma coluna chamada "__proto__" vira uma chave comum e é recusada depois, em vez de mexer no objeto.
+  const out = Object.create(null) as Record<string, SqlValue>;
   for (const [key, value] of Object.entries(row)) {
     if (value === null || typeof value === 'string' || typeof value === 'number') out[key] = value;
     else if (

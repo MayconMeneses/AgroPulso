@@ -3,6 +3,9 @@ import { recordEvent } from './audit.ts';
 import { DomainError } from './errors.ts';
 
 export const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
+// O banco inteiro vive na memória do aparelho e é regravado a cada mudança: fotos demais deixam o app lento e podem estourar a
+// memória de celulares simples. Medido: 52 MB de fotos regravam em ~50 ms no computador; o limite protege os aparelhos fracos.
+export const MAX_ATTACHMENTS_TOTAL_BYTES = 120 * 1024 * 1024;
 
 const SIGNATURES: { mime: string; test: (b: Uint8Array) => boolean }[] = [
   { mime: 'image/jpeg', test: (b) => b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff },
@@ -41,6 +44,8 @@ export async function addAttachment(db: Database, input: { activityId: string; n
     if ((await db.all('select 1 as ok from field_activity where id = ?', [input.activityId])).length === 0) {
       throw new DomainError('invalido', 'Atividade inválida');
     }
+    const used = Number((await db.all('select coalesce(sum(size), 0) as t from attachment'))[0]?.t ?? 0);
+    if (used + input.bytes.byteLength > MAX_ATTACHMENTS_TOTAL_BYTES) throw new DomainError('invalido', 'O espaço de fotos deste aparelho chegou ao limite (120 MB). Remova anexos antigos antes de enviar outro');
     await db.run('insert into attachment (id, activity_id, name, mime, size, data, created_at) values (?, ?, ?, ?, ?, ?, ?)', [
       info.id,
       info.activityId,

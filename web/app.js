@@ -103,7 +103,9 @@ function watchUpdates() {
     box.replaceChildren(h('span', {}, 'Há uma versão nova do AgroPulso.'), h('button', { class: 'btn primary', type: 'button', onclick: () => { accepted = true; box.hidden = true; worker.postMessage({ type: 'SKIP_WAITING' }); } }, 'Atualizar agora'), h('button', { class: 'btn ghost', type: 'button', onclick: () => { box.hidden = true; } }, 'Depois'));
     box.hidden = false;
   };
-  navigator.serviceWorker.register('sw.js').then((reg) => {
+  // A política de Trusted Types da página só aceita scripts por esta política, e ela só deixa passar o sw.js.
+  const policy = window.trustedTypes?.createPolicy('agropulso', { createScriptURL: (u) => { if (u !== 'sw.js') throw new TypeError('script não permitido'); return u; } });
+  navigator.serviceWorker.register(policy ? policy.createScriptURL('sw.js') : 'sw.js').then((reg) => {
     if (reg.waiting && navigator.serviceWorker.controller) offer(reg.waiting);
     reg.addEventListener('updatefound', () => {
       const w = reg.installing;

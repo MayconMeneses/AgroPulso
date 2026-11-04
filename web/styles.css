@@ -83,6 +83,8 @@ body {
 @keyframes rise { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes slide { from { transform: translateX(40px); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes beat { 0%, 100% { opacity: .25; transform: scale(.94); } 12% { opacity: .9; transform: scale(1.06); } 24% { opacity: .35; transform: scale(1); } 36% { opacity: .75; transform: scale(1.04); } }
-@keyframes travel { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -150; } }
 @keyframes draw { to { stroke-dashoffset: 0; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } .ln { stroke-dashoffset: 0; } .dot { display: none; } }
+/* Só aparece depois que guard.js confirma que a página não está dentro de uma moldura de outro site. */
+html:not(.live) body { visibility: hidden; }
+.no-js { visibility: visible; margin: 24px 16px; padding: 14px; border: 1px solid var(--line); border-radius: 14px 4px 14px 4px; }
