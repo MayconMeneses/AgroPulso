@@ -27,7 +27,7 @@ Estados: RESOLVIDA (modelo fechado, sem número a inventar) · PARCIAL (modelo f
 | DP-017 | Moeda, idioma, fuso e formatos (novo) | §8, §13 | Moeda BRL; interface pt-BR; vírgula decimal; data dd/mm/aaaa. Fuso guardado **por propriedade** (o Brasil tem mais de um); persistência em UTC | RESOLVIDA |
 | DP-018 | Abrangência por área da agricultura (novo) | pedido do dono | Núcleo genérico (propriedade, área, ciclo, atividade, custo, colheita, venda). Tipos de atividade, culturas, categorias e unidades são dados configuráveis. Pecuária e outras áreas ficam V3 (§2), mas o modelo não deve impedi-las | RESOLVIDA |
 | DP-019 | Tema claro/escuro (novo) | pedido do dono | Seletor escuro/claro/automático; onde guardar a preferência (conta ou aparelho) ainda em aberto | PARCIAL |
-| DP-020 | Foco regional no Nordeste (novo) | pedido do dono | Entrevistas, benchmark e piloto priorizam o Nordeste; núcleo continua genérico. Unidades regionais (ex.: tarefa) entram como unidades cadastráveis, sem fator padrão; quais estados e perfis entrar primeiro fica com o dono | PARCIAL |
+| DP-020 | Foco regional | decisão do dono em 2026-11-04 | **Retirado.** O projeto não tem foco regional: vale para produtores de todo o Brasil. Unidades regionais (ex.: tarefa) continuam cadastráveis, sem fator padrão | FECHADA |
 | DP-021 | Campos comerciais do termo de uso (novo) | docs/legal/TERMO_DE_USO_MINUTA.md | Contato, preço e forma de pagamento, validade técnica, canal e horário de suporte, número de aparelhos por licença. Dono pediu em 2026-11-03 para **deixar para o final**; não perguntar antes | ABERTA (adiada pelo dono) |
 
 Resumo: 13 resolvidas (algumas por premissa a validar), 6 parciais (DP-009, DP-010, DP-011, DP-015, DP-019, DP-020), 2 abertas (DP-013, DP-021).

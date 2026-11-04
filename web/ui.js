@@ -156,7 +156,7 @@ export function say(message, kind = 'ok') {
 
 // Mostra a mensagem em português dos erros do domínio; o resto vira uma frase genérica (o detalhe vai ao console).
 export function fail(error) {
-  if (error && (error.name === 'DomainError' || error.name === 'BackupError')) say(error.message, 'err');
+  if (error && (error.name === 'DomainError' || error.name === 'BackupError' || error.name === 'StorageError')) say(error.message, 'err');
   else {
     console.error(error);
     say('Algo deu errado e nada foi salvo. Tente de novo.', 'err');

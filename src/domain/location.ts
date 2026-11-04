@@ -38,6 +38,22 @@ export async function setFarmLocation(db: Database, farmId: string, loc: FarmLoc
   });
 }
 
+// Chave geral para os recursos que usam a internet (previsão e mapa). Desligada, o app não faz nenhum pedido a serviço de
+// fora e não pede a localização do aparelho. Ligada é o padrão, como o dono escolheu; a escolha fica só neste aparelho.
+const ONLINE_KEY = 'recursos_online';
+
+export async function onlineFeaturesEnabled(db: Database): Promise<boolean> {
+  const r = (await db.all('select value from app_meta where key = ?', [ONLINE_KEY]))[0];
+  return r?.value !== 'desligado';
+}
+
+export async function setOnlineFeatures(db: Database, on: boolean): Promise<void> {
+  await db.transaction(async () => {
+    await db.run('insert into app_meta (key, value) values (?, ?) on conflict(key) do update set value = excluded.value', [ONLINE_KEY, on ? 'ligado' : 'desligado']);
+    await recordEvent(db, { type: 'online_features.set', resource: 'app_meta', resourceId: ONLINE_KEY, after: { on } });
+  });
+}
+
 export async function getFarmLocation(db: Database, farmId: string): Promise<FarmLocation | null> {
   const r = (await db.all('select lat_micro, lon_micro from farm where id = ?', [farmId]))[0];
   if (!r || r.lat_micro === null || r.lon_micro === null) return null;

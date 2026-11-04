@@ -1,4 +1,5 @@
 import type { Database, Row, SqlValue } from './database.ts';
+import { createSaver } from './saver.ts';
 
 // Adaptador para o navegador: SQLite compilado para WebAssembly (sql.js) com os bytes do banco guardados no
 // IndexedDB. Só roda no navegador; os testes automáticos não o exercitam (ver docs/reports/FASE-05.md).
@@ -56,18 +57,14 @@ export async function openBrowserSqlite(SQL: SqlJsStatic): Promise<Database> {
   let raw = new SQL.Database(saved ?? undefined);
   raw.run('pragma foreign_keys = on');
   let inTransaction = false;
-  let saving: Promise<void> = Promise.resolve();
 
   // Grava no IndexedDB depois de cada mudança concluída. export() do sql.js reinicia as pragmas da conexão,
   // então a chave estrangeira é religada logo depois.
-  const persist = (): Promise<void> => {
-    saving = saving.then(async () => {
-      const bytes = raw.export();
-      raw.run('pragma foreign_keys = on');
-      await writeBytes(bytes);
-    });
-    return saving;
-  };
+  const persist = createSaver(async () => {
+    const bytes = raw.export();
+    raw.run('pragma foreign_keys = on');
+    await writeBytes(bytes);
+  });
 
   const write = async (fn: () => void): Promise<void> => {
     fn();
@@ -109,7 +106,7 @@ export async function openBrowserSqlite(SQL: SqlJsStatic): Promise<Database> {
       }
     },
     async close() {
-      await saving;
+      await persist().catch(() => undefined); // espera a fila esvaziar
       raw.close();
       raw = undefined as never;
     },

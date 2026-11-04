@@ -23,13 +23,6 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== self.location.origin) return;
-  e.respondWith(
-    caches.match(e.request).then(
-      (hit) =>
-        hit ||
-        fetch(e.request).then((res) => {
-          return res;
-        }),
-    ),
-  );
+  // Só devolve o que o próprio app guardou na instalação; o que não está no cache vai à rede sem ser gravado (dado nunca entra no cache).
+  e.respondWith(caches.match(e.request).then((hit) => hit || fetch(e.request)));
 });

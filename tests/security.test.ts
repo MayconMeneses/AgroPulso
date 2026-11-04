@@ -109,11 +109,34 @@ test('SEC: página tem política de conteúdo (CSP) restritiva e sem scripts de 
   assert.match(csp, /connect-src 'self'/);
   // Só dois serviços externos, ambos opcionais e acionados por botão: previsão (Open-Meteo) e quadros do mapa (OpenStreetMap)
   assert.equal(/connect-src ([^;]+)/.exec(csp)?.[1], "'self' https://api.open-meteo.com");
-  assert.equal(/img-src ([^;]+)/.exec(csp)?.[1], "'self' data: blob: https://tile.openstreetmap.org");
+  assert.equal(/img-src ([^;]+)/.exec(csp)?.[1], "'self' https://tile.openstreetmap.org");
+  for (const d of ["frame-src 'none'", "media-src 'none'", "require-trusted-types-for 'script'", 'trusted-types agropulso', 'upgrade-insecure-requests', "base-uri 'none'", "form-action 'none'"]) assert.ok(csp.includes(d), d);
+  assert.ok(html.includes('<script src="guard.js"></script>'), 'a guarda anti-moldura roda no <head>');
+  assert.match(readFileSync('web/styles.css', 'utf8'), /html:not\(\.live\) body \{ visibility: hidden; \}/);
   assert.doesNotMatch(csp, /default-src[^;]*https?:|script-src[^;]*https?:|style-src[^;]*https?:/);
   // 'wasm-unsafe-eval' é exigido só para carregar o SQLite em WebAssembly; 'unsafe-eval' e 'unsafe-inline' ficam proibidos
   assert.doesNotMatch(csp, /'unsafe-inline'|'unsafe-eval'/);
   assert.match(csp, /script-src 'self' 'wasm-unsafe-eval'/);
   assert.doesNotMatch(html, /<script[^>]+src="https?:/);
   assert.doesNotMatch(html, /onclick=|onload=/);
+});
+
+test('SEC: guarda anti-moldura só libera a página quando ela não está dentro de outro site', () => {
+  const code = readFileSync('web/guard.js', 'utf8');
+  const run = (win: Record<string, unknown>) => {
+    const doc = { documentElement: { className: '' } };
+    new Function('window', 'document', code)(win, doc);
+    return doc.documentElement.className.includes('live');
+  };
+  const self: Record<string, unknown> = { location: { href: 'https://x/' } };
+  self.self = self;
+  self.top = self;
+  assert.equal(run(self), true, 'página no topo: liberada');
+  const emMoldura: Record<string, unknown> = { location: { href: 'https://x/' }, top: { location: {} } };
+  emMoldura.self = emMoldura;
+  assert.equal(run(emMoldura), false, 'dentro de moldura: continua escondida');
+  const bloqueada: Record<string, unknown> = { location: { href: 'https://x/' } };
+  bloqueada.self = bloqueada;
+  Object.defineProperty(bloqueada, 'top', { get() { throw new Error('acesso bloqueado entre origens'); } });
+  assert.equal(run(bloqueada), false, 'sem acesso ao topo: trata como moldura');
 });

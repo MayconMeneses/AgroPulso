@@ -10,7 +10,7 @@ Fora do papel do sistema: substituir técnico agrônomo, receituário, análise 
 Os dados do Censo Agro 2017 (§1, [AG01]) contextualizam o público; não provam demanda pagante e não entram em projeção de clientes ou receita.
 
 ## 1.1 Foco regional (pedido do dono, 2026-11-03)
-Piloto e pesquisa priorizam o **Nordeste do Brasil**. O núcleo continua genérico e configurável para qualquer área da agricultura (DP-018); o foco decide quem entrevistar, quais padrões iniciais sugerir e o que testar primeiro.
+O projeto não tem foco regional: serve a produtores de todo o Brasil. O núcleo é genérico e configurável para qualquer área da agricultura (DP-018).
 Tudo abaixo é **hipótese a validar em entrevistas**, não fato levantado:
 - conectividade mais irregular no campo: reforça rascunhos locais e a fila offline da V2;
 - unidades locais de medida de área e de venda diferentes das do Sul/Sudeste (ex.: tarefa): exigir unidade cadastrável com fator informado, sem fator padrão;

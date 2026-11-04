@@ -15,7 +15,7 @@ export interface ForecastDay {
   rainChance: number | null;
 }
 
-const deg = (micro: number): string => (micro / 1_000_000).toFixed(4); // 4 casas (~11 m): mais que isso não ajuda a previsão
+const deg = (micro: number): string => (micro / 1_000_000).toFixed(2); // 2 casas (~1 km): basta para a previsão e entrega menos do local exato
 
 export function weatherUrl(loc: FarmLocation, timezone: string): string {
   const q = new URLSearchParams({

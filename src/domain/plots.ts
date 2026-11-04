@@ -15,6 +15,18 @@ export interface Plot {
   outline: FarmLocation[] | null; // contorno desenhado no mapa (opcional; não muda a área declarada nem a medida)
 }
 
+// Um contorno ilegível (arquivo de backup antigo ou mexido) vale como "sem contorno": não pode derrubar a tela inteira.
+function readOutline(raw: unknown): FarmLocation[] | null {
+  if (raw === null || raw === undefined) return null;
+  try {
+    const pts = JSON.parse(String(raw)) as FarmLocation[];
+    assertOutline(pts);
+    return pts;
+  } catch {
+    return null;
+  }
+}
+
 function toPlot(r: Record<string, unknown>): Plot {
   const n = (v: unknown) => (v === null || v === undefined ? null : Number(v));
   return {
@@ -24,7 +36,7 @@ function toPlot(r: Record<string, unknown>): Plot {
     areaDeclaredMicro: n(r.area_declared_micro),
     areaMeasuredMicro: n(r.area_measured_micro),
     areaUnitId: r.area_unit_id === null ? null : String(r.area_unit_id),
-    outline: r.outline_json === null || r.outline_json === undefined ? null : (JSON.parse(String(r.outline_json)) as FarmLocation[]),
+    outline: readOutline(r.outline_json),
   };
 }
 

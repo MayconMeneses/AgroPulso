@@ -89,9 +89,12 @@ test('versão errada do formato ou dos dados é rejeitada', async () => {
   formato.formatVersion = 2;
   await rejectsWith(importBackup(destino, JSON.stringify(formato)), 'versao_incompativel');
 
+  // Backup de um esquema MAIS NOVO que o app não vale; os mais antigos valem (ver tests/audit.test.ts).
   const esquema = JSON.parse(arquivo);
-  esquema.schemaVersion = 1;
+  esquema.schemaVersion = 999;
   await rejectsWith(importBackup(destino, JSON.stringify(esquema)), 'versao_incompativel');
+  esquema.schemaVersion = 0;
+  await rejectsWith(importBackup(destino, JSON.stringify(esquema)), 'estrutura');
 });
 
 test('lixo, outro formato e estrutura trocada são rejeitados', async () => {

@@ -5,7 +5,7 @@ Exigência: comparar ao menos três alternativas — caderno de campo convencion
 
 Estado: **PASS**. Três fontes, uma por categoria, com conteúdo lido em 2026-11-03: Aegro Campo (página), Embrapa (guia) e Emater-DF (PDF baixado com autorização do dono e lido por inteiro, 61 páginas). Uma quarta leitura (TCC da Unesp) compara mais quatro softwares, mas é fonte secundária (ver abaixo).
 Método: o Chrome do dono não estava conectado (computador em casa) e o Firecrawl está sem chave de API; usei a busca web nativa para localizar fontes e leitura direta das páginas para as afirmações abaixo. Resumos de busca **não** contam como evidência.
-Foco regional: Nordeste (DP-020). Cada fonte foi lida só no que traz; afirmação sem leitura está marcada.
+Sem foco regional (DP-020 retirada). Cada fonte foi lida só no que traz; afirmação sem leitura está marcada.
 
 ### Fontes lidas
 | Alternativa | Categoria | URL | Acesso | O que a fonte afirma | Lacuna observada |
@@ -18,7 +18,7 @@ Foco regional: Nordeste (DP-020). Cada fonte foi lida só no que traz; afirmaç�
 | Fonte | Tipo | O que afirma | Limite |
 |---|---|---|---|
 | Campo+: proposta de aplicativo web para gestão de propriedades rurais (TCC, Unesp Bauru, 2025, 52 f.) — https://repositorio.unesp.br/bitstreams/1a7846ea-d642-4de3-bccc-d4eeca6eac21/download | Trabalho de graduação | Compara Aegro, E-produtor, Kad-Sítio e BrazSoft. Aegro: médias e grandes, "custo elevado", offline. E-produtor: pequenos e médios, módulos financeiro, agronômico, zootécnico e clima, "dependência de internet". Kad-Sítio: sítios e chácaras, simples, "pouca adaptabilidade". BrazSoft: grandes propriedades, módulos agrícola e pecuário, "complexidade alta"; lista cadastro de safra (ciclo de produção), talhão, venda de produção e estoque. Conclui que o mercado tem custo alto, dependência de internet ou complexidade | Tabelas são "autoria própria" a partir de sites de 2024–2025, não testes de uso; preços não informados; o "custo elevado" do Aegro não bate com a página do Aegro Campo, que descreve o app como gratuito (app e sistema são produtos distintos); não tem entrevistas com produtores |
-| Controle financeiro dos fornecedores do PAA em Praia de Campina, Rio Tinto-PB (TCC, UFPB, ~2019) — https://repositorio.ufpb.br/jspui/bitstream/123456789/31209/2/GleisonCostadeLima_ARTIGO.pdf | Trabalho de graduação com dados primários | Questionário a 16 agricultoras (amostra por conveniência, todas mulheres). 87,5% com renda familiar de até 1 salário mínimo; só 6,25% fez capacitação em controle financeiro; 50% usam caderno ou agenda como ferramenta; uma respondente não faz nenhum controle; a principal dificuldade citada é pouco conhecimento em gestão financeira; 87,5% usam a renda do PAA para despesas familiares | n=16, um município, um programa; ano deduzido do rodapé "Dados da Pesquisa, 2019"; não generaliza para o Nordeste; não trata de unidades, vendas parciais, perdas nem internet |
+| Controle financeiro dos fornecedores do PAA em Praia de Campina, Rio Tinto-PB (TCC, UFPB, ~2019) — https://repositorio.ufpb.br/jspui/bitstream/123456789/31209/2/GleisonCostadeLima_ARTIGO.pdf | Trabalho de graduação com dados primários | Questionário a 16 agricultoras (amostra por conveniência, todas mulheres). 87,5% com renda familiar de até 1 salário mínimo; só 6,25% fez capacitação em controle financeiro; 50% usam caderno ou agenda como ferramenta; uma respondente não faz nenhum controle; a principal dificuldade citada é pouco conhecimento em gestão financeira; 87,5% usam a renda do PAA para despesas familiares | n=16, um município, um programa; ano deduzido do rodapé "Dados da Pesquisa, 2019"; não generaliza para outras regiões; não trata de unidades, vendas parciais, perdas nem internet |
 
 ### Fontes não lidas (não usar como evidência)
 | Fonte | Motivo |
@@ -32,23 +32,23 @@ Foco regional: Nordeste (DP-020). Cada fonte foi lida só no que traz; afirmaç�
 ### Implicações para o produto (hipóteses, não conclusões)
 - Há app gratuito de campo com offline e mapa (Aegro Campo). O AgroPulso precisa se diferenciar no que a página não mostra: fluxo de caixa simples, venda e resultado por safra explicados. **A validar** com a leitura das demais fontes e as entrevistas.
 - O próprio guia da Embrapa trata rateio como ponto sensível e feito por critério explícito, o que sustenta o §7 (sem rateio oculto).
-- A Embrapa cobre pecuária de pequenos ruminantes no Nordeste, reforçando manter o modelo genérico (DP-018).
+- A Embrapa cobre pecuária de pequenos ruminantes, reforçando manter o modelo genérico (DP-018).
 
 - O caderno da Emater-DF separa a despesa familiar (pró-labore) dos custos produtivos e mantém diaristas em tabela própria, o que é compatível com RN-AG-020 (mão de obra familiar em linha separada). Hipótese: o produtor já pensa em "entrada", "saída" e "custo por unidade vendida"; o AgroPulso pode reaproveitar esse vocabulário. **A validar** nas entrevistas.
-- O caderno é do Distrito Federal, não do Nordeste: não prova nada sobre a região (DP-020).
+- O caderno é do Distrito Federal: não prova nada sobre outras regiões.
 
 ### Para melhorar a evidência
 Testar de fato um software (o benchmark só lê descrições). O PDF da Emater-DF foi baixado para pasta temporária fora do projeto (direitos reservados, só análise); não está versionado.
 
 ## Entrevistas (§3)
-Foco: Nordeste (DP-020); a amostra deve variar em porte e tipo de produção dentro da região. Estados e contatos: a definir pelo dono.
+Sem foco regional; a amostra deve variar em região, porte e tipo de produção. Estados e contatos: a definir pelo dono.
 Exigência: 10 a 15 produtores e/ou técnicos de extensão de portes variados. **Não fabricar entrevistas.**
 Estado: **entrevistas não realizadas (0)**. Em 2026-11-03 o dono informou que não haverá pessoas reais e pediu pesquisa para responder o roteiro. Decisão: **substituir por pesquisa secundária, sem inventar falas**. Respostas simuladas ou "perfis típicos" escritos por mim não são evidência e não entram. O gate fica **SUBSTITUÍDO (decisão do dono)**, não PASS: as fontes lidas respondem só parte do roteiro, o resto fica UNKNOWN e vira premissa do piloto.
 
 ### Roteiro respondido por fontes lidas (sem entrevista)
 | Pergunta do roteiro | Resposta com fonte | Estado |
 |---|---|---|
-| Como registram custo | Caderno ou agenda: 50% de 16 agricultoras no PAA-PB (UFPB); o caderno da Emater-DF é o modelo impresso de extensão | PROBABLE para o perfil estudado; UNKNOWN para o Nordeste |
+| Como registram custo | Caderno ou agenda: 50% de 16 agricultoras no PAA-PB (UFPB); o caderno da Emater-DF é o modelo impresso de extensão | PROBABLE para o perfil estudado; UNKNOWN para as demais regiões |
 | Como definem safra | Caderno da Emater-DF usa "lavoura ou criação" em texto livre; BrazSoft tem "safra (ciclo de produção)" e talhão | POSSIBLE; sem fonte sobre o produtor |
 | Mais de um cultivo no mesmo talhão | Nenhuma fonte lida | UNKNOWN |
 | Vendas parciais | Nenhuma fonte lida | UNKNOWN |
