@@ -7,7 +7,7 @@ import { painel } from './views-painel.js';
 import { backup, relatorio } from './views-relatorio.js';
 import { registrar } from './views-registrar.js';
 import { safras } from './views-safras.js';
-import { fail, form, h, icon, say } from './ui.js';
+import { animatedMark, fail, form, h, icon, say } from './ui.js';
 
 // [id, rótulo completo, rótulo curto da barra]
 const TABS = [['painel', 'Painel', 'Painel'], ['registrar', 'Registrar', 'Registrar'], ['safras', 'Safras', 'Safras'], ['estoque', 'Estoque', 'Estoque'], ['cadastros', 'Cadastros', 'Cadastros'], ['relatorio', 'Relatório e cópia dos dados', 'Relatório']];
@@ -67,7 +67,7 @@ async function askAuthor() {
   const rows = await db.all("select value from app_meta where key = 'perfil'");
   if (rows[0]) { author = String(rows[0].value); return; }
   await new Promise((resolve) => {
-    main.replaceChildren(h('section', { class: 'panel' }, h('h2', {}, 'Bem-vindo'), h('p', {}, 'Tudo o que você anotar fica só neste aparelho. Diga seu nome: ele aparece como autor nos registros.'),
+    main.replaceChildren(h('section', { class: 'panel' }, animatedMark(), h('h2', {}, 'Bem-vindo'), h('p', {}, 'Tudo o que você anotar fica só neste aparelho. Diga seu nome: ele aparece como autor nos registros.'),
       form([{ name: 'name', label: 'Seu nome' }], 'Começar', async (v) => {
         const name = v.name.trim();
         if (!name) { say('Informe seu nome.', 'err'); return; }
