@@ -14,7 +14,7 @@ export async function assertCycleWritable(db: Database, cycleId: string, justifi
 }
 
 // RN-AG-006: a mesma ação reenviada com a mesma chave não duplica o registro.
-export async function findByKey(db: Database, table: 'field_activity' | 'financial_entry' | 'harvest_entry' | 'sale', key: string | undefined): Promise<string | null> {
+export async function findByKey(db: Database, table: 'field_activity' | 'financial_entry' | 'harvest_entry' | 'sale' | 'stock_movement', key: string | undefined): Promise<string | null> {
   if (!key) return null;
   const rows = await db.all(`select id from ${table} where idempotency_key = ?`, [key]);
   return rows[0] ? String(rows[0].id) : null;

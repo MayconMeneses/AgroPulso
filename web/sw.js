@@ -5,7 +5,13 @@ const APP_FILES = []; // preenchido pelo build com TODOS os arquivos de dist (me
 const SHELL = ['./', ...APP_FILES];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  // cache: 'reload' ignora o cache HTTP da hospedagem, para a versão nova vir inteira e não misturada com a velha.
+  // Sem skipWaiting aqui: a versão nova espera a pessoa aceitar a atualização (aviso no app), para não trocar o código no meio de um registro.
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL.map((u) => new Request(u, { cache: 'reload' })))));
+});
+
+self.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('activate', (e) => {

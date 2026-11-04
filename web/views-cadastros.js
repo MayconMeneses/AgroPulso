@@ -5,6 +5,7 @@ import { createFarm, listFarms } from './app/domain/farms.js';
 import { createCostCategory, listCostCategories } from './app/domain/financial.js';
 import { createPlot, listPlots } from './app/domain/plots.js';
 import { createUnit, listUnits, setConversion } from './app/domain/units.js';
+import { localBlock } from './views-local.js';
 import { form, h, icon, openSheet, say } from './ui.js';
 
 // Fusos do Brasil. O usuário escolhe; não há fuso padrão (RN-AG-022).
@@ -53,7 +54,8 @@ export async function cadastros(db, rerender) {
     ['cadastros', 'Categoria de custo', cats.map((x) => x.name), add('Nova categoria', (ok) => form([{ name: 'name', label: 'Nome (ex.: adubo, água, mão de obra)' }], 'Salvar categoria', async (v) => { await createCostCategory(db, { name: v.name }); await ok('Categoria salva.'); }))],
   ];
 
-  return [h('div', { class: 'cad-grid' }, blocks.map(([ic, title, names, open], i) => h('section', { class: `panel ${i % 2 ? 'alt' : ''}`.trim() },
+  const local = await localBlock(db, farms, rerender);
+  return [local, h('div', { class: 'cad-grid' }, blocks.map(([ic, title, names, open], i) => h('section', { class: `panel ${i % 2 ? 'alt' : ''}`.trim() },
     h('div', { class: 'cad-head' }, icon(ic), h('h2', {}, title)),
     names.length ? h('div', { class: 'names' }, names.map((n) => h('span', {}, n))) : h('p', { class: 'muted small' }, 'Nenhum ainda.'),
     h('button', { class: 'btn', type: 'button', onclick: open }, icon('registrar'), 'Adicionar'))))];

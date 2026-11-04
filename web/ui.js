@@ -26,6 +26,7 @@ const ICONS = {
   registrar: 'M12 5v14M5 12h14',
   safras: 'M12 21v-9M12 12c0-4 3-7 8-7 0 4-3 7-8 7zM12 15c0-3-2-5-6-5 0 3 2 5 6 5z',
   cadastros: 'M4 7h16M4 12h16M4 17h10',
+  estoque: 'M3 8l9-5 9 5v9l-9 5-9-5zM3 8l9 5 9-5M12 13v9',
   relatorio: 'M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6',
   backup: 'M12 4v10M8 10l4 4 4-4M5 20h14',
   atividade: 'M5 5h14v14H5zM5 9h14M9 14l2 2 4-4',
@@ -94,7 +95,7 @@ export function lines(rows, formatMoney) {
 // Gaveta: no celular sobe de baixo, no computador entra pela direita. <dialog> traz foco preso e tecla Esc.
 export function openSheet(title, build) {
   const dlg = h('dialog', { class: 'sheet', 'aria-label': title });
-  const close = () => { if (dlg.open) dlg.close(); };
+  const close = () => { if (dlg.open) dlg.close(); dlg.remove(); }; // remove já aqui: não depende do evento "close" chegar
   dlg.append(
     h('div', { class: 'sheet-head' }, h('h2', {}, title), h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Fechar', onclick: close }, icon('fechar'))),
     h('div', { class: 'sheet-body' }, build(close)),
