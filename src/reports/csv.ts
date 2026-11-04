@@ -37,7 +37,7 @@ export async function buildReport(db: Database, f: ReportFilters): Promise<Repor
   const r = await cycleResult(db, f.cycleId);
   const rows: ReportData['rows'] = [];
 
-  for (const e of await db.all('select e.kind, e.occurred_on, e.paid_on, e.amount_cents, e.family_labor, e.counterparty, k.name as cat from financial_entry e left join cost_category k on k.id = e.category_id where e.cycle_id = ? order by e.occurred_on, e.id', [f.cycleId])) {
+  for (const e of await db.all('select e.kind, e.occurred_on, e.paid_on, e.amount_cents, e.family_labor, e.counterparty, k.name as cat from financial_entry e left join cost_category k on k.id = e.category_id where e.voided_at is null and e.cycle_id = ? order by e.occurred_on, e.id', [f.cycleId])) {
     if (!inRange(String(e.occurred_on), f)) continue;
     rows.push({
       section: e.kind === 'DESPESA' ? (Number(e.family_labor) === 1 ? 'Mão de obra familiar' : 'Despesa') : 'Entrada de caixa',

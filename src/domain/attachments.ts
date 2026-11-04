@@ -64,3 +64,17 @@ export async function readAttachment(db: Database, id: string): Promise<Uint8Arr
   const r = (await db.all('select data from attachment where id = ?', [id]))[0];
   return r ? (r.data as Uint8Array) : null;
 }
+
+// O arquivo (a foto ou o PDF) é apagado de verdade para liberar espaço e por privacidade; o que fica é o registro de que
+// existiu: nome, tipo, tamanho, quando foi removido e por quê. O conteúdo não volta.
+export async function removeAttachment(db: Database, id: string, reason: string): Promise<void> {
+  if (reason.trim() === '') throw new DomainError('invalido', 'Informe o motivo de remover o anexo');
+  await db.transaction(async () => {
+    const r = (await db.all('select a.name, a.mime, a.size, a.activity_id, f.cycle_id from attachment a join field_activity f on f.id = a.activity_id where a.id = ?', [id]))[0];
+    if (!r) throw new DomainError('nao_encontrado', 'Anexo não encontrado');
+    const closed = (await db.all("select 1 as ok from crop_cycle where id = ? and status in ('CONCLUIDA','CANCELADA')", [r.cycle_id])).length > 0;
+    if (closed) throw new DomainError('transicao_invalida', 'Safra encerrada: o anexo fica preservado no histórico');
+    await db.run('delete from attachment where id = ?', [id]);
+    await recordEvent(db, { type: 'attachment.removed', resource: 'attachment', resourceId: id, reason: reason.trim(), before: { name: r.name, mime: r.mime, size: Number(r.size), activityId: r.activity_id } });
+  });
+}

@@ -2,6 +2,8 @@ import type { Database } from '../storage/database.ts';
 import { recordEvent } from './audit.ts';
 import { DomainError } from './errors.ts';
 import { assertCycleWritable, assertDateText, findByKey } from './guards.ts';
+import { estimateWarnings, harvestEstimate, saleWarnings } from './results.ts';
+import type { UnitTotal } from './results.ts';
 
 export interface Harvest {
   id: string;
@@ -11,6 +13,7 @@ export interface Harvest {
   unitId: string;
   author: string;
   version: number;
+  warning?: string | null; // só preenchido logo depois de registrar
 }
 
 export interface Sale {
@@ -24,6 +27,7 @@ export interface Sale {
   buyer: string | null;
   author: string;
   version: number;
+  warning?: string | null; // só preenchido logo depois de registrar
 }
 
 function positive(v: number, msg: string): void {
@@ -99,7 +103,7 @@ export async function recordHarvest(
       reason: input.justification ?? null,
       after: { cycleId: input.cycleId, quantityMicro: input.quantityMicro, unitId: input.unitId, harvestedOn: input.harvestedOn },
     });
-    return (await getHarvest(db, id)) as Harvest;
+    return { ...((await getHarvest(db, id)) as Harvest), warning: await harvestWarning(db, input.cycleId) };
   });
 }
 
@@ -165,7 +169,7 @@ export async function recordSale(
       reason: input.justification ?? null,
       after: { cycleId: input.cycleId, amountCents: input.amountCents, quantityMicro: input.quantityMicro, soldOn: input.soldOn },
     });
-    return (await getSale(db, id)) as Sale;
+    return { ...((await getSale(db, id)) as Sale), warning: await saleWarning(db, input.cycleId) };
   });
 }
 
@@ -221,5 +225,35 @@ export async function recordReceipt(
     ]);
     await recordEvent(db, { type: 'sale.receipt_recorded', resource: 'sale', resourceId: input.saleId, after: { amountCents: input.amountCents, receivedOn: input.receivedOn } });
     return { id };
+  });
+}
+
+async function totalsFor(db: Database, table: 'harvest_entry' | 'sale', cycleId: string): Promise<UnitTotal[]> {
+  const rows = await db.all(`select t.unit_id, u.name, sum(t.quantity_micro) as total from ${table} t join unit u on u.id = t.unit_id where t.cycle_id = ? group by t.unit_id, u.name`, [cycleId]);
+  return rows.map((r) => ({ unitId: String(r.unit_id), unitName: String(r.name), quantityMicro: Number(r.total) }));
+}
+
+// Aviso na hora de registrar: o registro é salvo do mesmo jeito e o aviso diz o que conferir (nunca bloqueia).
+export async function harvestWarning(db: Database, cycleId: string): Promise<string | null> {
+  return estimateWarnings(await totalsFor(db, 'harvest_entry', cycleId), await harvestEstimate(db, cycleId))[0] ?? null;
+}
+export async function saleWarning(db: Database, cycleId: string): Promise<string | null> {
+  return saleWarnings(await totalsFor(db, 'harvest_entry', cycleId), await totalsFor(db, 'sale', cycleId))[0] ?? null;
+}
+
+// RN-AG-014: a estimativa de colheita é declarada pelo usuário e fica separada do que foi colhido de verdade.
+export async function setHarvestEstimate(db: Database, cycleId: string, version: number, input: { quantityMicro: number; unitId: string } | null): Promise<void> {
+  if (input) {
+    positive(input.quantityMicro, 'A estimativa deve ser maior que zero');
+    await requireUnit(db, input.unitId);
+  }
+  await db.transaction(async () => {
+    const c = (await db.all('select version from crop_cycle where id = ?', [cycleId]))[0];
+    if (!c) throw new DomainError('nao_encontrado', 'Safra não encontrada');
+    if (Number(c.version) !== version) throw new DomainError('conflito_de_versao', 'Esta safra foi alterada por outra ação. Recarregue e tente de novo');
+    await assertCycleWritable(db, cycleId);
+    const before = await harvestEstimate(db, cycleId);
+    await db.run('update crop_cycle set harvest_estimate_micro = ?, harvest_estimate_unit_id = ?, version = version + 1 where id = ? and version = ?', [input?.quantityMicro ?? null, input?.unitId ?? null, cycleId, version]);
+    await recordEvent(db, { type: 'crop_cycle.harvest_estimate_set', resource: 'crop_cycle', resourceId: cycleId, before, after: input });
   });
 }

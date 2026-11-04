@@ -2,7 +2,9 @@ import { cancelCycle, closeCycle, listCycles, openCycle, planCycle, startCycle }
 import { listCropTypes } from './app/domain/crop-types.js';
 import { listFarms } from './app/domain/farms.js';
 import { assignPlot, listPlots } from './app/domain/plots.js';
+import { estimativa, lancamentos } from './views-lancamentos.js';
 import { form, h, icon, openSheet, say, STATUS } from './ui.js';
+import { harvestEstimate } from './app/domain/results.js';
 
 const STEPS = ['RASCUNHO', 'PLANEJADA', 'EM_ANDAMENTO', 'CONCLUIDA'];
 
@@ -27,6 +29,8 @@ export async function safras(db, rerender) {
       const closed = c.status === 'CONCLUIDA' || c.status === 'CANCELADA';
       const at = STEPS.indexOf(c.status);
       const sheet = (title, fields, label, run) => () => openSheet(title, (close) => form(fields, label, async (v) => { await run(v); await ok(close)(`${title}: feito.`); }));
+      const hasEstimate = (await harvestEstimate(db, c.id)) !== null;
+      const label = `${f.name} · ${cropName.get(c.cropTypeId) ?? ''}`;
       const next = {
         RASCUNHO: ['Planejar', sheet('Planejar', [{ name: 'a', label: 'Início estimado', type: 'date' }, { name: 'b', label: 'Fim estimado', type: 'date' }], 'Planejar', (v) => planCycle(db, c.id, c.version, { plannedStart: v.a, plannedEnd: v.b }))],
         PLANEJADA: ['Iniciar', sheet('Iniciar', [{ name: 'a', label: 'Início real', type: 'date' }], 'Iniciar', (v) => startCycle(db, c.id, c.version, { actualStart: v.a }))],
@@ -40,6 +44,8 @@ export async function safras(db, rerender) {
         h('div', { class: 'row' },
           next ? h('button', { class: 'btn primary', type: 'button', onclick: next[1] }, next[0]) : '',
           !closed && plots.length ? h('button', { class: 'btn', type: 'button', onclick: sheet('Talhão da safra', [{ name: 'p', label: 'Talhão', type: 'select', options: plots.map((p) => [p.id, p.name]) }], 'Salvar', (v) => assignPlot(db, c.id, c.version, v.p)) }, 'Talhão') : '',
+          h('button', { class: 'btn', type: 'button', onclick: () => lancamentos(db, c, label, rerender) }, 'Lançamentos'),
+          !closed ? h('button', { class: 'btn', type: 'button', onclick: () => estimativa(db, { ...c, hasEstimate }, label, rerender) }, 'Estimativa') : '',
           !closed ? h('button', { class: 'btn danger', type: 'button', onclick: sheet('Cancelar safra', [{ name: 'r', label: 'Motivo do cancelamento', type: 'textarea' }], 'Cancelar safra', (v) => cancelCycle(db, c.id, c.version, { reason: v.r })) }, 'Cancelar') : '')));
     }
   }

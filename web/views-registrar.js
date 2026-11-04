@@ -67,7 +67,7 @@ export async function registrar(db, rerender, author) {
             { name: 'qty', label: 'Quantidade colhida', inputmode: 'decimal' },
             { name: 'unit', label: 'Unidade', type: 'select', options: units },
             { name: 'date', label: 'Data da colheita', type: 'date' },
-          ], 'Salvar colheita', async (v) => { await recordHarvest(db, { cycleId, harvestedOn: v.date, quantityMicro: parseQuantity(v.qty, 'Quantidade'), unitId: v.unit, author, idempotencyKey: key }); await ok('Colheita salva.'); }));
+          ], 'Salvar colheita', async (v) => { const hv = await recordHarvest(db, { cycleId, harvestedOn: v.date, quantityMicro: parseQuantity(v.qty, 'Quantidade'), unitId: v.unit, author, idempotencyKey: key }); await ok(hv.warning ? `Colheita salva. Atenção: ${hv.warning}` : 'Colheita salva.'); }));
         } else if (kind === 'sale') {
           const hs = (await listHarvests(db, cycleId)).map((x) => [x.id, x.harvestedOn]);
           box.append(form([
@@ -77,7 +77,7 @@ export async function registrar(db, rerender, author) {
             { name: 'date', label: 'Data da venda', type: 'date' },
             { name: 'buyer', label: 'Comprador', hint: 'opcional' },
             { name: 'harvest', label: 'Ligar a uma colheita', type: 'select', options: hs, placeholder: 'Sem ligação' },
-          ], 'Salvar venda', async (v) => { await recordSale(db, { cycleId, harvestId: v.harvest || undefined, soldOn: v.date, quantityMicro: parseQuantity(v.qty, 'Quantidade'), unitId: v.unit, amountCents: parseMoney(v.amount, 'Valor'), buyer: v.buyer, author, idempotencyKey: key }); await ok('Venda salva.'); }));
+          ], 'Salvar venda', async (v) => { const sv = await recordSale(db, { cycleId, harvestId: v.harvest || undefined, soldOn: v.date, quantityMicro: parseQuantity(v.qty, 'Quantidade'), unitId: v.unit, amountCents: parseMoney(v.amount, 'Valor'), buyer: v.buyer, author, idempotencyKey: key }); await ok(sv.warning ? `Venda salva. Atenção: ${sv.warning}` : 'Venda salva.'); }));
         } else {
           const sales = (await listSales(db, cycleId)).map((s) => [s.id, `${s.soldOn} - ${formatMoney(s.amountCents)}`]);
           box.append(h('p', { class: 'muted' }, 'Recebimento é o dinheiro que entrou. Venda registrada não é dinheiro recebido.'), sales.length ? form([

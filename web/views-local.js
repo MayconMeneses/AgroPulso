@@ -1,6 +1,8 @@
 import { formatCoordinate, getFarmLocation, parseCoordinate, setFarmLocation } from './app/domain/location.js';
-import { mapTiles, parseForecast, weatherUrl } from './app/domain/online.js';
-import { chip, form, h, icon, openSheet, say } from './ui.js';
+import { parseForecast, weatherUrl } from './app/domain/online.js';
+import { listPlots } from './app/domain/plots.js';
+import { chip, form, h, icon, openSheet, say, tag } from './ui.js';
+import { buildMap, desenharTalhao } from './views-talhao.js';
 
 let selected = '';
 const asked = new Set(); // propriedades para as quais já pedimos a localização nesta sessão (não pedir de novo a cada tela)
@@ -26,19 +28,14 @@ async function denied() {
   try { return (await navigator.permissions?.query({ name: 'geolocation' }))?.state === 'denied'; } catch { return false; }
 }
 
-function mapView(loc, name) {
-  const m = mapTiles(loc, 15);
-  const grid = h('div', { class: 'map', role: 'img', 'aria-label': `Mapa em volta de ${name}` }, m.tiles.map((t) => h('img', { src: t.url, alt: '', width: 256, height: 256, draggable: 'false' }))); // sem "no-referrer": a política do OpenStreetMap pede que o pedido diga de qual site vem (só o endereço do site)
-  const pin = h('span', { class: 'map-pin' });
-  pin.style.setProperty('--x', `${m.markerX}%`); // pela API de estilo (CSSOM): a política de segurança só barra o atributo "style"
-  pin.style.setProperty('--y', `${m.markerY}%`);
-  grid.append(pin);
-  return h('div', {}, grid, h('p', { class: 'muted small' }, '© ', h('a', { href: 'https://www.openstreetmap.org/copyright', target: '_blank', rel: 'noopener noreferrer' }, 'Colaboradores do OpenStreetMap'), '. O ponto é o local da propriedade.'));
+function mapView(loc, name, outlines) {
+  const { el } = buildMap(loc, 15, name, outlines);
+  return h('div', {}, el, h('p', { class: 'muted small' }, '© ', h('a', { href: 'https://www.openstreetmap.org/copyright', target: '_blank', rel: 'noopener noreferrer' }, 'Colaboradores do OpenStreetMap'), '. O ponto é o local da propriedade.'));
 }
 
 function forecastView(days) {
   return h('div', {}, h('ul', { class: 'timeline' }, days.map((d) => h('li', {}, h('strong', {}, dayName(d.date)), ` · ${nf.format(d.minC)}° a ${nf.format(d.maxC)}° · chuva ${nf.format(d.rainMm)} mm`, d.rainChance === null ? '' : ` (${d.rainChance}%)`))),
-    h('p', { class: 'muted small' }, 'Previsão de Open-Meteo.com. É uma estimativa, não uma garantia.'));
+    h('p', { class: 'muted small' }, 'Previsão de Open-Meteo.com. É uma estimativa, não uma garantia.', tag('externo')));
 }
 
 // Local, tempo e mapa. Com o local salvo e internet, a previsão e o mapa aparecem sozinhos. Sem local, o app pede a
@@ -48,6 +45,7 @@ export async function localBlock(db, farms, rerender) {
   if (!farms.some((f) => f.id === selected)) selected = farms[0].id;
   const farm = farms.find((f) => f.id === selected);
   const loc = await getFarmLocation(db, farm.id);
+  const plots = await listPlots(db, farm.id);
   const body = h('div', { class: 'local-body' });
   const info = h('p', { class: 'muted small' });
 
@@ -105,7 +103,7 @@ export async function localBlock(db, farms, rerender) {
 
   if (loc) {
     info.textContent = `Local: ${formatCoordinate(loc.latMicro)}, ${formatCoordinate(loc.lonMicro)}`;
-    if (navigator.onLine) { body.append(mapView(loc, farm.name)); showForecast(); } // sem await: a tela não espera a internet
+    if (navigator.onLine) { body.append(mapView(loc, farm.name, plots.filter((p) => p.outline).map((p) => p.outline))); showForecast(); } // sem await: a tela não espera a internet
     else body.append(h('p', { class: 'callout' }, 'Sem internet agora: o tempo e o mapa voltam quando conectar.'));
   } else if (navigator.onLine) autoLocate();
   else info.textContent = 'Local não informado. Quando houver internet, o app pede a localização do aparelho.';
@@ -114,6 +112,7 @@ export async function localBlock(db, farms, rerender) {
     h('div', { class: 'cad-head' }, icon('propriedade'), h('h2', {}, `Tempo e mapa · ${farm.name}`)),
     farms.length > 1 ? h('div', { class: 'chips', role: 'group', 'aria-label': 'Propriedade' }, farms.map((f) => chip(f.name, f.id === selected, () => { selected = f.id; rerender(); }))) : '',
     info, body,
-    h('div', { class: 'row' }, h('button', { class: 'btn', type: 'button', onclick: definir }, loc ? 'Mudar o local' : 'Informar o local')),
+    h('div', { class: 'row' }, h('button', { class: 'btn', type: 'button', onclick: definir }, loc ? 'Mudar o local' : 'Informar o local'),
+      loc && navigator.onLine ? plots.map((p) => h('button', { class: 'btn', type: 'button', onclick: () => desenharTalhao(db, loc, farm.name, p, rerender) }, `Contorno: ${p.name}`)) : ''),
     h('p', { class: 'muted small' }, AVISO));
 }

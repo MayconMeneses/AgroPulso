@@ -39,3 +39,18 @@ Com internet e sem local salvo, o app pede a localização do aparelho (uma vez 
 - **Sincronização entre aparelhos:** exige servidor e contas; contraria a decisão atual (app local, sem servidor) e muda a política de privacidade.
 - Estoque: não gera despesa sozinho (o custo continua sendo lançado em "Registrar"), não converte unidades e não apaga movimentos (corrige-se com ajuste).
 - Não verificado: Safari do iPhone (WebKit), celular real, desempenho em aparelho de entrada.
+
+## Rodada 2 (2026-11-03): alertas, anular, etiquetas, contorno
+| Item | Onde | Verificação |
+|---|---|---|
+| Tipos de atividade vêm preenchidos no primeiro uso (10 nomes comuns; só "Aplicação de defensivo" leva o aviso de aplicação). Continuam do usuário; categorias de custo e unidades **seguem vazias** de propósito (variam por região) | `addCommonActivityTypes` em `src/domain/activities.ts` | teste; conferido na tela |
+| Estimativa de colheita (RN-AG-014) e aviso quando a colheita passa dela | `setHarvestEstimate`, `estimateWarnings` | 2 testes; conferido no Painel |
+| Aviso ao vender mais do que colheu, venda sem colheita e venda em unidade sem colheita (sem converter unidades). Só avisa, não bloqueia; aparece ao salvar e no resultado | `saleWarnings` em `src/domain/results.ts` | testes |
+| Anular despesa/entrada com motivo: sai das contas, do painel e do CSV; fica gravada riscada com o motivo | `voidEntry`, tela "Lançamentos" na safra | testes; conferido na tela |
+| Remover anexo com motivo: o arquivo é apagado, o registro (nome, tipo, tamanho, motivo) fica. Em safra encerrada o anexo é preservado | `removeAttachment` | testes |
+| Etiquetas Digitado / Calculado / Estimado / Fonte externa nos números do Painel, estoque, estimativa e previsão. "Oficial" virou "Fonte externa": a previsão é de um serviço privado, não de órgão oficial | `tag()` em `web/ui.js` | conferido na tela |
+| Contorno do talhão: toque nos cantos no mapa, até 60 pontos, área estimada em hectares (não altera área declarada nem medida) e polígono sobre o mapa | `src/domain/geo.ts`, `setPlotOutline`, `web/views-talhao.js` | testes (toque↔coordenada, área de ~1 ha); desenhado e salvo no navegador |
+
+Total: 87 testes. Não existe "desfazer anulação" nem "desfazer remoção de anexo" pela tela.
+
+**Aviso de versão nova para quem instalou antes:** não há o que fazer no código. A instalação antiga troca de versão uma vez, sem aviso, na próxima abertura; as seguintes já avisam. Como o app ainda não foi publicado, a única instalação antiga é a do computador de desenvolvimento.

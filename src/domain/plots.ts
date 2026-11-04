@@ -1,6 +1,8 @@
 import type { Database } from '../storage/database.ts';
 import { recordEvent } from './audit.ts';
 import { DomainError } from './errors.ts';
+import { assertOutline } from './geo.ts';
+import type { FarmLocation } from './location.ts';
 import { getUnit } from './units.ts';
 
 export interface Plot {
@@ -10,6 +12,7 @@ export interface Plot {
   areaDeclaredMicro: number | null;
   areaMeasuredMicro: number | null;
   areaUnitId: string | null;
+  outline: FarmLocation[] | null; // contorno desenhado no mapa (opcional; não muda a área declarada nem a medida)
 }
 
 function toPlot(r: Record<string, unknown>): Plot {
@@ -21,6 +24,7 @@ function toPlot(r: Record<string, unknown>): Plot {
     areaDeclaredMicro: n(r.area_declared_micro),
     areaMeasuredMicro: n(r.area_measured_micro),
     areaUnitId: r.area_unit_id === null ? null : String(r.area_unit_id),
+    outline: r.outline_json === null || r.outline_json === undefined ? null : (JSON.parse(String(r.outline_json)) as FarmLocation[]),
   };
 }
 
@@ -81,5 +85,18 @@ export async function assignPlot(db: Database, cycleId: string, version: number,
       before: { plotId: c.plot_id ?? null },
       after: { plotId },
     });
+  });
+}
+
+// O desenho do talhão no mapa é opcional e guardado à parte. A área do desenho é só uma estimativa mostrada na tela:
+// ela não substitui a área declarada nem a medida (RN-AG-015).
+export async function setPlotOutline(db: Database, plotId: string, points: FarmLocation[] | null): Promise<void> {
+  if (points) assertOutline(points);
+  await db.transaction(async () => {
+    const p = await getPlot(db, plotId);
+    if (!p) throw new DomainError('nao_encontrado', 'Talhão não encontrado');
+    const clean = points?.map((q) => ({ latMicro: q.latMicro, lonMicro: q.lonMicro })) ?? null;
+    await db.run('update plot set outline_json = ? where id = ?', [clean ? JSON.stringify(clean) : null, plotId]);
+    await recordEvent(db, { type: 'plot.outline_set', resource: 'plot', resourceId: plotId, before: { points: p.outline?.length ?? 0 }, after: { points: clean?.length ?? 0 } });
   });
 }

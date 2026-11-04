@@ -1,5 +1,5 @@
 import type { Database } from '../storage/database.ts';
-import { MICRO } from './decimal.ts';
+import { formatQuantity, MICRO } from './decimal.ts';
 import { DomainError } from './errors.ts';
 
 export interface UnitTotal {
@@ -34,6 +34,7 @@ export interface CycleResult {
   areaMedidaMicro: number | null;
   resultadoParcialCents: number | null; // receita de vendas menos custo registrado; "parcial" sempre
   custosNaoAlocadosDaPropriedadeCents: number; // fora desta safra, não entram na conta
+  estimativaColheita: UnitTotal | null; // estimativa declarada pelo usuário (não é dado medido)
   avisos: string[];
   excluidos: string[];
 }
@@ -51,6 +52,33 @@ async function totals(db: Database, table: 'harvest_entry' | 'sale', cycleId: st
   return rows.map((r) => ({ unitId: String(r.unit_id), unitName: String(r.name), quantityMicro: Number(r.total) }));
 }
 
+// RN-AG-014 e vendas: avisos de coerência entre estimativa, colheita e venda. Só avisam; nunca bloqueiam nem corrigem.
+// Unidades diferentes não são comparadas nem convertidas (RN-AG-011).
+const qtext = (t: UnitTotal) => `${formatQuantity(t.quantityMicro)} ${t.unitName}`;
+
+export function estimateWarnings(colhido: UnitTotal[], estimativa: UnitTotal | null): string[] {
+  const h = estimativa ? colhido.find((x) => x.unitId === estimativa.unitId) : undefined;
+  return estimativa && h && h.quantityMicro > estimativa.quantityMicro
+    ? [`A colheita registrada (${qtext(h)}) passou da sua estimativa (${qtext(estimativa)}). Confira se o valor está certo.`]
+    : [];
+}
+
+export function saleWarnings(colhido: UnitTotal[], vendido: UnitTotal[]): string[] {
+  const out: string[] = [];
+  for (const v of vendido) {
+    const h = colhido.find((x) => x.unitId === v.unitId);
+    if (h && v.quantityMicro > h.quantityMicro) out.push(`Você vendeu mais (${qtext(v)}) do que colheu (${qtext(h)}). Confira a colheita e a venda.`);
+    else if (!h && colhido.length === 0) out.push(`Há venda de ${v.unitName} e nenhuma colheita registrada nesta safra.`);
+    else if (!h) out.push(`Há venda em ${v.unitName} sem colheita nessa unidade. O app não converte unidades sozinho, então não dá para comparar.`);
+  }
+  return out;
+}
+
+export async function harvestEstimate(db: Database, cycleId: string): Promise<UnitTotal | null> {
+  const r = (await db.all('select c.harvest_estimate_micro as q, c.harvest_estimate_unit_id as u, n.name from crop_cycle c left join unit n on n.id = c.harvest_estimate_unit_id where c.id = ?', [cycleId]))[0];
+  return r && r.q !== null && r.u !== null ? { unitId: String(r.u), unitName: String(r.name), quantityMicro: Number(r.q) } : null;
+}
+
 // Cálculo auditável (RNF-AG-003, CT-AG-007): cada número vem de uma soma dos registros e os casos
 // deixados de fora são listados. Sem dados, nenhum resultado é inventado (CT-AG-008).
 export async function cycleResult(db: Database, cycleId: string): Promise<CycleResult> {
@@ -59,11 +87,11 @@ export async function cycleResult(db: Database, cycleId: string): Promise<CycleR
   const farmId = String(c.farm_id);
 
   const exp = (extra: string) =>
-    sumCents(db, `select sum(amount_cents) as total from financial_entry where cycle_id = ? and kind = 'DESPESA' ${extra}`, [cycleId]);
+    sumCents(db, `select sum(amount_cents) as total from financial_entry where voided_at is null and cycle_id = ? and kind = 'DESPESA' ${extra}`, [cycleId]);
   const custoRegistradoCents = await exp('and family_labor = 0');
   const maoDeObraFamiliarCents = await exp('and family_labor = 1');
   const custoPagoCents = await exp('and family_labor = 0 and paid_on is not null');
-  const entradasDeCaixaCents = await sumCents(db, "select sum(amount_cents) as total from financial_entry where cycle_id = ? and kind = 'ENTRADA'", [cycleId]);
+  const entradasDeCaixaCents = await sumCents(db, "select sum(amount_cents) as total from financial_entry where voided_at is null and cycle_id = ? and kind = 'ENTRADA'", [cycleId]);
   const receitaVendasCents = await sumCents(db, 'select sum(amount_cents) as total from sale where cycle_id = ?', [cycleId]);
   const recebidoCents = await sumCents(
     db,
@@ -72,13 +100,13 @@ export async function cycleResult(db: Database, cycleId: string): Promise<CycleR
   );
   const naoAlocados = await sumCents(
     db,
-    "select sum(amount_cents) as total from financial_entry where farm_id = ? and cycle_id is null and kind = 'DESPESA' and family_labor = 0",
+    "select sum(amount_cents) as total from financial_entry where voided_at is null and farm_id = ? and cycle_id is null and kind = 'DESPESA' and family_labor = 0",
     [farmId],
   );
 
   const colhido = await totals(db, 'harvest_entry', cycleId);
   const vendido = await totals(db, 'sale', cycleId);
-  const nCusto = Number((await db.all("select count(*) as n from financial_entry where cycle_id = ? and kind = 'DESPESA'", [cycleId]))[0]?.n);
+  const nCusto = Number((await db.all("select count(*) as n from financial_entry where voided_at is null and cycle_id = ? and kind = 'DESPESA'", [cycleId]))[0]?.n);
   const nVendas = Number((await db.all('select count(*) as n from sale where cycle_id = ?', [cycleId]))[0]?.n);
   const nAtividades = Number((await db.all('select count(*) as n from field_activity where cycle_id = ?', [cycleId]))[0]?.n);
   const semDados = nCusto + nVendas + nAtividades + colhido.length + entradasDeCaixaCents === 0;
@@ -131,6 +159,8 @@ export async function cycleResult(db: Database, cycleId: string): Promise<CycleR
     avisos.push('A área medida é diferente da declarada. As duas são mostradas; a produtividade usa a declarada.');
   }
   if (produtividade?.some((p) => !p.exact)) avisos.push('Produtividade arredondada na 6ª casa decimal.');
+  const estimativaColheita = await harvestEstimate(db, cycleId);
+  avisos.push(...estimateWarnings(colhido, estimativaColheita), ...saleWarnings(colhido, vendido));
 
   return {
     cycleId,
@@ -151,6 +181,7 @@ export async function cycleResult(db: Database, cycleId: string): Promise<CycleR
     areaMedidaMicro,
     resultadoParcialCents,
     custosNaoAlocadosDaPropriedadeCents: naoAlocados,
+    estimativaColheita,
     avisos,
     excluidos,
   };

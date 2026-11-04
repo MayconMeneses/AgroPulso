@@ -217,4 +217,15 @@ export const migrations: Migration[] = [
       alter table farm add column lon_micro integer;
     `,
   },
+  {
+    version: 8,
+    name: 'anulacao_estimativa_e_contorno',
+    sql: `
+      alter table financial_entry add column voided_at text;
+      alter table financial_entry add column void_reason text;
+      alter table crop_cycle add column harvest_estimate_micro integer;
+      alter table crop_cycle add column harvest_estimate_unit_id text references unit(id);
+      alter table plot add column outline_json text;
+    `,
+  },
 ];
