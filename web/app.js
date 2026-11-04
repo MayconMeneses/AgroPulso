@@ -54,7 +54,7 @@ function drawNav() {
 }
 
 // Relatório e cópia de segurança dividem a mesma aba, para a barra de baixo caber em telas de 320 px.
-const VIEWS = { painel, registrar: (d, r) => registrar(d, r, author), safras, estoque: (d, r) => estoque(d, r, author), cadastros, relatorio: async (d, r) => [...(await relatorio(d, r)), ...(await backup(d, r))] };
+const VIEWS = { painel, registrar: (d, r) => registrar(d, r, author), safras: (d, r) => safras(d, r, author), estoque: (d, r) => estoque(d, r, author), cadastros, relatorio: async (d, r) => [...(await relatorio(d, r)), ...(await backup(d, r))] };
 
 async function render() {
   drawNav();

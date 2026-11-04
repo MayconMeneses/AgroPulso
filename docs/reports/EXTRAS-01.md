@@ -69,3 +69,12 @@ Total: 87 testes. Não existe "desfazer anulação" nem "desfazer remoção de a
 - **Categorias de custo** (10) e **unidades** (kg, tonelada, saca, litro, hectare, tarefa, unidade, caixa) são oferecidas uma única vez no primeiro uso. São só nomes: **nenhum fator de conversão vem pronto** (saca e tarefa mudam por cultura e região; o fator continua sendo cadastrado por quem usa, com a origem). Nome que já existe não é repetido; a marca no banco impede de voltar. A categoria "Mão de obra" é a que o trabalho usa na despesa. Em `src/domain/defaults.ts`.
 - **Relatório de mão de obra por pessoa** em PDF e planilha (Relatório > "Qual relatório"): resumo por pessoa (dias ou % de salário e valor), total contratado e total da família (estimado, fora do custo), linhas do período, aviso de família sem valor e menção aos anulados (que não entram nas somas). Em `src/reports/labor.ts`; usa o mesmo formato do relatório da safra, com nomes neutralizados contra fórmula na planilha.
 - 100 testes. Conferido no navegador: listas preenchidas, sem fator de conversão, PDF de mão de obra gerado. O texto do PDF foi conferido pelo teste das linhas, não aberto em um leitor de PDF nesta rodada.
+
+## Rodada 5 (2026-11-04): correções na tela
+Em Safras > Lançamentos, três seções novas: **Colheitas**, **Vendas** e **Atividades**, cada linha com "Corrigir".
+- Colheita: nova quantidade e motivo obrigatório. A unidade não muda (para trocar, registra-se de novo).
+- Venda: quantidade e/ou valor (campo vazio = não muda) e motivo obrigatório; recusa se nada mudou.
+- Atividade: data e observação; atividade planejada ganha "já foi feita" para virar realizada (antes não havia como concluir uma tarefa planejada). Quem alterou fica gravado.
+- Depois de corrigir, o app repete o aviso de coerência (venda acima da colheita, colheita acima da estimativa) se for o caso.
+- O valor de antes e o de depois ficam no histórico de cada correção. Conferido no navegador: sem motivo recusa; correção de colheita (20 para 18) e de venda (R$ 4.000 para R$ 4.100) aplicadas e o aviso de estimativa apareceu. A tela de atividade não foi exercitada à mão (o código de domínio tem teste).
+

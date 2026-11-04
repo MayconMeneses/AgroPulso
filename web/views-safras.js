@@ -9,7 +9,7 @@ import { harvestEstimate } from './app/domain/results.js';
 const STEPS = ['RASCUNHO', 'PLANEJADA', 'EM_ANDAMENTO', 'CONCLUIDA'];
 
 // Cada safra é uma trilha: onde está, o que já passou e a única ação que vem agora.
-export async function safras(db, rerender) {
+export async function safras(db, rerender, author) {
   const [farms, crops] = await Promise.all([listFarms(db), listCropTypes(db)]);
   const ok = (close) => async (m) => { close(); say(m); await rerender(); };
   const cropName = new Map(crops.map((c) => [c.id, c.name]));
@@ -44,7 +44,7 @@ export async function safras(db, rerender) {
         h('div', { class: 'row' },
           next ? h('button', { class: 'btn primary', type: 'button', onclick: next[1] }, next[0]) : '',
           !closed && plots.length ? h('button', { class: 'btn', type: 'button', onclick: sheet('Talhão da safra', [{ name: 'p', label: 'Talhão', type: 'select', options: plots.map((p) => [p.id, p.name]) }], 'Salvar', (v) => assignPlot(db, c.id, c.version, v.p)) }, 'Talhão') : '',
-          h('button', { class: 'btn', type: 'button', onclick: () => lancamentos(db, c, label, rerender) }, 'Lançamentos'),
+          h('button', { class: 'btn', type: 'button', onclick: () => lancamentos(db, c, label, rerender, author) }, 'Lançamentos'),
           !closed ? h('button', { class: 'btn', type: 'button', onclick: () => estimativa(db, { ...c, hasEstimate }, label, rerender) }, 'Estimativa') : '',
           !closed ? h('button', { class: 'btn danger', type: 'button', onclick: sheet('Cancelar safra', [{ name: 'r', label: 'Motivo do cancelamento', type: 'textarea' }], 'Cancelar safra', (v) => cancelCycle(db, c.id, c.version, { reason: v.r })) }, 'Cancelar') : '')));
     }

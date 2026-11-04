@@ -5,11 +5,12 @@ import { formatMoney, formatQuantity, parseQuantity } from './app/domain/decimal
 import { listCycleEntries, voidEntry } from './app/domain/financial.js';
 import { setHarvestEstimate } from './app/domain/production.js';
 import { listUnits } from './app/domain/units.js';
+import { correcoes } from './views-correcoes.js';
 import { download, fail, form, h, openSheet, say, tag } from './ui.js';
 
 // Lançamentos de uma safra: despesas e entradas (dá para anular com motivo) e anexos das atividades (dá para remover com
 // motivo). Nada é apagado de verdade no histórico: o que sai das contas continua registrado, riscado, com o motivo.
-export function lancamentos(db, cycle, title, rerender) {
+export function lancamentos(db, cycle, title, rerender, author) {
   openSheet(`Lançamentos: ${title}`, () => {
     const box = h('div');
     const draw = async () => {
@@ -35,6 +36,7 @@ export function lancamentos(db, cycle, title, rerender) {
           h('div', { class: 'grow' }, `${w.occurredOn} · ${w.workerName} · ${w.payType === 'DIARIA' ? `${formatQuantity(w.daysMicro ?? 0)} dia(s)` : `${w.sharePercent}% do mês`} · ${w.amountCents === null ? 'sem valor' : formatMoney(w.amountCents)}`),
           voided ? h('span', { class: 'muted small' }, `Anulado: ${w.voidReason}`) : h('button', { class: 'btn ghost', type: 'button', onclick: () => reasonSheet('Anular trabalho', (r) => voidWork(db, w.id, r)) }, 'Anular')));
       }
+      parts.push(...(await correcoes(db, cycle, author, async () => { await draw(); await rerender(); })));
       parts.push(h('h3', {}, 'Anexos das atividades'));
       let any = false;
       for (const a of acts) {
