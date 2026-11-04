@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manual do AgroPulso</title>
+<style>
+  :root { --verde:#14804a; --verde-claro:#e6f6ec; --amarelo:#fff4d6; --texto:#1b2a22; --suave:#506157; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:19px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; color:var(--texto); background:#fff; }
+  main { max-width:760px; margin:0 auto; padding:24px 20px 80px; }
+  h1 { font-size:2.1rem; line-height:1.2; margin:0 0 .3em; color:var(--verde); }
+  h2 { font-size:1.55rem; line-height:1.25; margin:2.2em 0 .5em; padding-top:.6em; border-top:3px solid var(--verde-claro); }
+  h3 { font-size:1.2rem; margin:1.4em 0 .3em; }
+  p, li { margin:.5em 0; }
+  .capa { text-align:center; padding:28px 0 8px; }
+  .capa img { width:120px; height:120px; }
+  .capa p { color:var(--suave); }
+  figure { margin:1.2em 0; text-align:center; break-inside:avoid; }
+  figure img { width:100%; max-width:300px; border:2px solid #cfe3d6; border-radius:18px; }
+  figcaption { font-size:.9rem; color:var(--suave); margin-top:.4em; }
+  .dica, .cuidado { border-radius:12px; padding:12px 16px; margin:1em 0; break-inside:avoid; }
+  .dica { background:var(--verde-claro); border-left:6px solid var(--verde); }
+  .cuidado { background:var(--amarelo); border-left:6px solid #d9a100; }
+  .passo { counter-increment:p; list-style:none; position:relative; padding-left:48px; margin:.9em 0; }
+  .passo::before { content:counter(p); position:absolute; left:0; top:0; width:34px; height:34px; border-radius:50%; background:var(--verde); color:#fff; font-weight:700; text-align:center; line-height:34px; }
+  ol.passos { counter-reset:p; padding:0; margin:0; }
+  b.botao { background:#eef2ef; border:1px solid #b8c8be; border-radius:8px; padding:1px 8px; font-weight:600; white-space:nowrap; }
+  table { border-collapse:collapse; width:100%; font-size:.95rem; }
+  td, th { border:1px solid #cfe3d6; padding:8px 10px; text-align:left; vertical-align:top; }
+  th { background:var(--verde-claro); }
+  .sumario li { margin:.2em 0; }
+  @media print { main { max-width:none; } h2 { break-after:avoid; } body { font-size:15px; } }
+</style>
+</head>
+<body>
+<main>
+
+<div class="capa">
+  <img src="../../web/icons/icon-192.png" alt="Logo do AgroPulso">
+  <h1>Manual do AgroPulso</h1>
+  <p>O seu caderno de campo no celular.<br>Passo a passo, com figuras, sem complicação.</p>
+</div>
+
+<h2>O que é o AgroPulso?</h2>
+<p>Pense num <strong>caderno</strong> onde você anota tudo da sua roça: o que gastou, o que plantou, o que colheu e o que vendeu. A diferença é que este caderno fica no celular e <strong>faz as contas sozinho</strong>.</p>
+<p>No fim, ele mostra se a plantação está dando lucro ou prejuízo. Você não precisa saber nada de computador. Se você sabe mandar mensagem no WhatsApp, sabe usar o AgroPulso.</p>
+<div class="dica"><strong>Boa notícia:</strong> o app funciona <strong>sem internet</strong>. Só o tempo (previsão do clima) e o mapa precisam de internet.</div>
+<div class="cuidado"><strong>Importante:</strong> tudo o que você anota fica guardado <strong>só dentro do seu celular</strong>. Ninguém mais vê. Por isso, de vez em quando, é preciso guardar uma <em>cópia</em> (veja o capítulo 8). É como tirar foto do caderno para não perder.</div>
+
+<h3>Neste manual</h3>
+<ol class="sumario">
+  <li>Colocar o app no celular</li>
+  <li>Abrir pela primeira vez</li>
+  <li>Os 4 primeiros passos</li>
+  <li>Registrar: anotar o que aconteceu</li>
+  <li>Safras: cada plantação</li>
+  <li>Painel: ver como está indo</li>
+  <li>Estoque: o que você tem guardado</li>
+  <li>Relatório e cópia de segurança</li>
+  <li>Se você errou, calma: como corrigir</li>
+  <li>Palavras que podem aparecer</li>
+</ol>
+
+<h2>1. Colocar o app no celular</h2>
+<p>O AgroPulso não vem da loja de aplicativos. Você abre um endereço e “fixa” o ícone na tela, como se fosse um aplicativo. Só precisa fazer isso <strong>uma vez</strong>, com internet.</p>
+<p>O endereço é:</p>
+<p style="text-align:center;font-size:1.25rem"><strong>agropulso.mmsystem.tech</strong></p>
+
+<h3>No iPhone</h3>
+<ol class="passos">
+  <li class="passo">Abra o <strong>Safari</strong> (o ícone azul parecido com uma bússola). Tem que ser o Safari, não outro navegador.</li>
+  <li class="passo">Digite o endereço acima e toque em ir.</li>
+  <li class="passo">Toque no botão <b class="botao">Compartilhar</b> (um quadradinho com uma seta para cima, na parte de baixo da tela).</li>
+  <li class="passo">Role a lista para cima e toque em <b class="botao">Adicionar à Tela de Início</b>.</li>
+  <li class="passo">Toque em <b class="botao">Adicionar</b>. Pronto: o ícone do AgroPulso aparece junto com seus outros aplicativos.</li>
+</ol>
+
+<h3>No Android</h3>
+<ol class="passos">
+  <li class="passo">Abra o <strong>Chrome</strong>.</li>
+  <li class="passo">Digite o endereço acima e toque em ir.</li>
+  <li class="passo">Toque nos <b class="botao">três pontinhos</b> no canto de cima.</li>
+  <li class="passo">Toque em <b class="botao">Instalar aplicativo</b> (ou <b class="botao">Adicionar à tela inicial</b>) e confirme.</li>
+</ol>
+<div class="dica">Depois de instalado, é só tocar no ícone para abrir, como qualquer outro aplicativo.</div>
+
+<h2>2. Abrir pela primeira vez</h2>
+<p>Na primeira vez, o app pergunta o seu nome. Ele serve só para aparecer como “autor” nas anotações (por exemplo, se mais de uma pessoa da família usar o mesmo celular).</p>
+<ol class="passos">
+  <li class="passo">Escreva o seu nome no campo <strong>Seu nome</strong>.</li>
+  <li class="passo">Toque em <b class="botao">Começar</b>.</li>
+</ol>
+<figure><img src="img/01-boas-vindas.png" alt="Tela de boas-vindas pedindo o nome"><figcaption>Tela de boas-vindas.</figcaption></figure>
+
+<h2>3. Os 4 primeiros passos</h2>
+<p>Quando você entra pela primeira vez, o app mostra uma lista chamada <strong>Primeiros passos</strong>. É como uma trilha: ele diz o que fazer primeiro, depois o segundo, e assim por diante. Cada passo concluído ganha um <strong>✔ feito</strong>. Quando os quatro acabam, a lista some sozinha.</p>
+<figure><img src="img/02-primeiros-passos.png" alt="Lista com os 4 primeiros passos"><figcaption>A lista dos 4 passos. O botão grande verde sempre leva ao próximo.</figcaption></figure>
+
+<h3>Passo 1: cadastrar a propriedade</h3>
+<p>Propriedade é o seu sítio, fazenda ou roça. Basta dar um nome.</p>
+<ol class="passos">
+  <li class="passo">Toque em <b class="botao">Cadastrar propriedade</b>.</li>
+  <li class="passo">Escreva o nome. Exemplo: <em>Sítio Boa Esperança</em>.</li>
+  <li class="passo">Em <strong>Cidade mais perto de você</strong>, escolha uma da lista. Isso serve só para o relógio do app marcar a hora certa.</li>
+  <li class="passo">Toque em <b class="botao">Salvar propriedade</b>.</li>
+</ol>
+<figure><img src="img/03-propriedade.png" alt="Janela para cadastrar a propriedade"><figcaption>A janela do passo 1.</figcaption></figure>
+
+<h3>Passo 2: dizer o que você planta</h3>
+<p>Escreva o nome da cultura: milho, feijão, mandioca, o que for. Toque em <b class="botao">Salvar cultura</b>. Você pode cadastrar outras depois.</p>
+
+<h3>Passo 3: abrir a primeira safra</h3>
+<p><strong>Safra</strong> é uma plantação do começo ao fim: do preparo da terra até vender a colheita. Escolha a propriedade e a cultura e toque em <b class="botao">Abrir safra</b>.</p>
+
+<h3>Passo 4: anotar a primeira coisa</h3>
+<p>Toque em <b class="botao">Ir para Registrar</b>. É o assunto do próximo capítulo.</p>
+<figure><img src="img/04-passos-andando.png" alt="Lista com os passos 1 e 2 marcados como feitos"><figcaption>Os passos feitos ficam marcados. O app sempre mostra o próximo.</figcaption></figure>
+
+<h2>4. Registrar: anotar o que aconteceu</h2>
+<p>É aqui que você usa o app no dia a dia. No topo aparece em qual safra você está anotando (<em>“Registrando em: Sítio Boa Esperança · Milho”</em>). Embaixo, vários botões. Cada um é um tipo de anotação:</p>
+<figure><img src="img/05-registrar.png" alt="Tela Registrar com os botões de tipo de anotação"><figcaption>A tela Registrar.</figcaption></figure>
+
+<table>
+<tr><th>Botão</th><th>Use quando…</th></tr>
+<tr><td><strong>Atividade de campo</strong></td><td>fez um serviço na lavoura: plantio, capina, adubação, pulverização.</td></tr>
+<tr><td><strong>Dia de trabalho</strong></td><td>uma pessoa trabalhou para você (empregado, diarista ou alguém da família). O app calcula o custo.</td></tr>
+<tr><td><strong>Despesa</strong></td><td>gastou dinheiro: adubo, semente, combustível, conserto.</td></tr>
+<tr><td><strong>Entrada de caixa</strong></td><td>entrou dinheiro que não foi de venda da colheita.</td></tr>
+<tr><td><strong>Colheita</strong></td><td>colheu. Diz quanto saiu da terra.</td></tr>
+<tr><td><strong>Venda</strong></td><td>vendeu parte da colheita para alguém.</td></tr>
+<tr><td><strong>Recebimento</strong></td><td>o comprador pagou (a venda inteira ou uma parte).</td></tr>
+</table>
+
+<h3>Exemplo: anotar uma despesa</h3>
+<p>Você comprou adubo por R$ 350,00. Veja como anotar:</p>
+<ol class="passos">
+  <li class="passo">Toque em <b class="botao">Despesa</b>.</li>
+  <li class="passo">Em <strong>Valor em reais</strong>, escreva <strong>350,00</strong>. Use vírgula para os centavos.</li>
+  <li class="passo">Em <strong>Data do custo</strong>, escolha o dia da compra.</li>
+  <li class="passo"><strong>Data do pagamento</strong>: se você já pagou, coloque o dia. Se ainda vai pagar, deixe vazio.</li>
+  <li class="passo">Em <strong>Categoria</strong>, escolha o tipo do gasto (por exemplo, <em>Adubo e corretivos</em>). O app lembra da última que você usou.</li>
+  <li class="passo">Em <strong>Para quem foi pago</strong>, escreva o nome da loja ou da pessoa.</li>
+  <li class="passo">Toque em <b class="botao">Salvar</b>. O app avisa: <em>“Lançamento salvo.”</em></li>
+</ol>
+<figure><img src="img/06-despesa.png" alt="Janela de despesa preenchida"><figcaption>A janela de despesa já preenchida.</figcaption></figure>
+<div class="dica">Marque <strong>“É mão de obra da própria família”</strong> quando o gasto for trabalho de alguém da família. Assim o app mostra esse valor à parte e não mistura com o dinheiro que realmente saiu do seu bolso.</div>
+
+<h3>Exemplo: anotar uma colheita</h3>
+<ol class="passos">
+  <li class="passo">Toque em <b class="botao">Colheita</b>.</li>
+  <li class="passo">Escreva a <strong>quantidade colhida</strong> (por exemplo, 40).</li>
+  <li class="passo">Escolha a <strong>unidade</strong> (saca, kg, tonelada…).</li>
+  <li class="passo">Escolha a <strong>data</strong> e toque em <b class="botao">Salvar colheita</b>.</li>
+</ol>
+<div class="cuidado">O app dá <strong>avisos</strong> quando algo parece estranho. Exemplo: se você tentar vender mais do que colheu, ele avisa. Leia o aviso com calma: pode ser só um número digitado errado.</div>
+
+<h2>5. Safras: cada plantação</h2>
+<p>Na aba <strong>Safras</strong> aparecem todas as suas plantações. Cada uma tem uma linha do tempo com 4 paradas, como uma estrada:</p>
+<p style="text-align:center"><strong>Rascunho → Planejada → Em andamento → Concluída</strong></p>
+<figure><img src="img/08-safras.png" alt="Tela de Safras mostrando uma safra em andamento"><figcaption>Uma safra “Em andamento”. A bolinha grande mostra onde ela está.</figcaption></figure>
+<p>O botão grande verde sempre faz a safra andar para a próxima parada:</p>
+<ul>
+  <li><b class="botao">Planejar</b>: você diz quando pretende começar e terminar.</li>
+  <li><b class="botao">Iniciar</b>: você diz o dia em que começou de verdade.</li>
+  <li><b class="botao">Concluir</b>: a safra terminou.</li>
+</ul>
+<p>Outros botões:</p>
+<ul>
+  <li><b class="botao">Lançamentos</b>: lista o que foi anotado nesta safra, e é onde você corrige erros (veja o capítulo 9).</li>
+  <li><b class="botao">Estimativa</b>: quanto você <em>espera</em> colher. Depois o app compara com o que colheu de verdade.</li>
+  <li><b class="botao">Cancelar</b> (vermelho): use só se a safra não vai mais acontecer. O app pede o motivo.</li>
+</ul>
+<div class="dica">Você pode ter <strong>várias safras ao mesmo tempo</strong>, por exemplo milho e feijão. Em <strong>Registrar</strong>, escolha sempre em qual delas está anotando.</div>
+
+<h2>6. Painel: ver como está indo</h2>
+<p>O <strong>Painel</strong> é a primeira tela. Ele junta tudo e mostra o resumo, sem você precisar fazer conta.</p>
+<figure><img src="img/07-painel.png" alt="Tela do Painel com avisos e resumo da safra"><figcaption>O Painel. Rolando para baixo aparecem mais cartões.</figcaption></figure>
+<p>O que aparece nele, de cima para baixo:</p>
+<ul>
+  <li><strong>Precisa da sua atenção</strong>: avisos do dia, como cópia de segurança atrasada, tarefa que passou da data, venda que ainda não foi paga ou item do estoque acabando. Cada aviso tem um botão que leva direto ao lugar certo.</li>
+  <li><strong>Resultado da safra</strong>: quanto você vendeu menos quanto gastou.</li>
+  <li><strong>Custo registrado</strong> e <strong>Vendas registradas</strong>: o total de gastos e o total vendido.</li>
+  <li><strong>Despesas e vendas por mês</strong>: um gráfico simples. O botão <b class="botao">Ver valores</b> mostra os números em forma de lista.</li>
+  <li><strong>Colheita</strong>: quanto já saiu da terra.</li>
+  <li><strong>Pendências</strong>: dinheiro que ainda falta receber e tarefas planejadas.</li>
+  <li><strong>Tempo e mapa</strong>: a previsão do tempo para a sua propriedade (precisa de internet).</li>
+</ul>
+<div class="cuidado">Repare nas <strong>etiquetinhas</strong> pequenas ao lado dos números: <em>Digitado</em>, <em>Calculado</em>, <em>Estimado</em>. Elas dizem de onde veio o número: <em>Digitado</em> é o que você anotou, <em>Calculado</em> é conta que o app fez, <em>Estimado</em> é um palpite seu.</div>
+<div class="cuidado">O resultado mostrado é <strong>parcial</strong>: só soma o que você anotou. Se esqueceu de anotar um gasto, ele não entra na conta. Por isso o app escreve que “não é lucro”. Quanto mais você anota, mais certo fica.</div>
+
+<h3>Tempo e mapa</h3>
+<p>Para ver a previsão do tempo, o app precisa saber onde fica a sua roça. Ele pede a <strong>localização do celular</strong>. Quando aparecer a pergunta, toque em <b class="botao">Permitir</b> (de preferência estando na propriedade). Se não quiser, toque em <b class="botao">Informar o local</b> e digite as coordenadas, ou em <b class="botao">Desligar tempo e mapa</b>. O resto do app funciona do mesmo jeito.</p>
+
+<h2>7. Estoque: o que você tem guardado</h2>
+<p>Serve para saber quanto sobrou de adubo, semente, veneno, ração, etc. O app faz a conta de entradas e saídas e avisa quando está acabando.</p>
+<figure><img src="img/09-estoque.png" alt="Tela de Estoque vazia com botão Novo item"><figcaption>O Estoque ainda vazio.</figcaption></figure>
+<ol class="passos">
+  <li class="passo">Toque em <b class="botao">Novo item</b>.</li>
+  <li class="passo">Escreva o nome (<em>adubo NPK</em>, <em>semente de milho</em>…).</li>
+  <li class="passo">Escolha a <strong>unidade</strong> (kg, saco, litro).</li>
+  <li class="passo">Se quiser, em <strong>Avisar quando chegar a</strong>, coloque um número. Quando o estoque chegar nele, o Painel avisa que está acabando.</li>
+  <li class="passo">Toque em <b class="botao">Salvar item</b>.</li>
+</ol>
+<p>Cada item ganha quatro botões:</p>
+<ul>
+  <li><b class="botao">Entrada</b>: você comprou ou recebeu mais.</li>
+  <li><b class="botao">Saída</b>: você usou. Pode dizer em qual safra usou. O app não deixa tirar mais do que tem.</li>
+  <li><b class="botao">Ajuste</b>: você contou e o número do app estava diferente. Escreva o motivo.</li>
+  <li><b class="botao">Histórico</b>: a lista de tudo que entrou e saiu.</li>
+</ul>
+
+<h2>8. Relatório e cópia de segurança</h2>
+<figure><img src="img/11-relatorio.png" alt="Tela de Relatório com opções"><figcaption>A aba de Relatório.</figcaption></figure>
+
+<h3>Relatório</h3>
+<p>É um papel (arquivo) com o resumo da safra, bom para mostrar ao banco, ao contador ou para guardar.</p>
+<ol class="passos">
+  <li class="passo">Escolha a <strong>Safra</strong>.</li>
+  <li class="passo">Se quiser só um período, preencha <strong>Do dia</strong> e <strong>Até o dia</strong>. Se não, deixe vazio.</li>
+  <li class="passo">Em <strong>Qual relatório</strong>, escolha o tipo (o completo da safra, o de mão de obra por pessoa, etc.).</li>
+  <li class="passo">Em <strong>Formato</strong>, escolha PDF (bom para ler e imprimir) ou planilha.</li>
+  <li class="passo">Toque em <b class="botao">Gerar relatório</b>.</li>
+</ol>
+
+<h3>Cópia de segurança (muito importante!)</h3>
+<p>Como tudo fica só no celular, se ele <strong>quebrar, for roubado ou for trocado</strong>, as anotações se perdem. A cópia de segurança é um arquivo com tudo o que você anotou. Com ele, dá para colocar tudo de volta em outro celular.</p>
+<ol class="passos">
+  <li class="passo">Role a tela do Relatório até o cartão <strong>Guardar uma cópia</strong>.</li>
+  <li class="passo">Toque em <b class="botao">Baixar cópia dos dados</b>. Um arquivo é salvo no celular.</li>
+  <li class="passo">Guarde o arquivo num lugar seguro: mande para o seu e-mail, para o WhatsApp (conversa com você mesmo) ou salve no Google Drive ou iCloud.</li>
+</ol>
+<div class="dica"><strong>Com senha:</strong> toque em <b class="botao">Cópia com senha (mais segura)</b>, escolha uma senha de pelo menos 10 caracteres, repita e toque em <b class="botao">Baixar cópia protegida</b>. Assim, mesmo que alguém pegue o arquivo, não consegue ler. <strong>Anote a senha em outro lugar:</strong> sem ela, nem o app consegue abrir a cópia.</div>
+<div class="cuidado"><strong>Quando fazer?</strong> Pelo menos uma vez por mês. O app lembra no Painel depois de 30 dias. Para <strong>recuperar</strong> as anotações num celular novo, abra o app, vá nesta mesma aba e use o cartão <strong>Restaurar</strong>, escolhendo o arquivo da cópia.</div>
+
+<h2>9. Se você errou, calma</h2>
+<p>Todo mundo erra ao digitar. O app foi feito para isso: ele <strong>não apaga</strong> as anotações antigas, para ninguém bagunçar a conta sem querer. Em vez de apagar, você <strong>corrige</strong> ou <strong>anula</strong> e escreve o motivo.</p>
+<ol class="passos">
+  <li class="passo">Vá em <strong>Safras</strong> e toque em <b class="botao">Lançamentos</b> na safra certa.</li>
+  <li class="passo">Ache a anotação errada na lista. Ao lado dela há um botão: <b class="botao">Corrigir</b> (colheita, venda e atividade) ou <b class="botao">Anular</b> (despesa, entrada de caixa e dia de trabalho).</li>
+  <li class="passo">Mude o que estava errado, ou escreva o motivo da anulação, e confirme.</li>
+</ol>
+<div class="dica">Digitou um valor errado? Corrija. Anotou algo que nunca aconteceu? Anule. Uma anotação anulada sai das contas, do Painel e do relatório, mas continua guardada com o motivo.</div>
+
+<h2>10. Palavras que podem aparecer</h2>
+<table>
+<tr><th>Palavra</th><th>O que quer dizer</th></tr>
+<tr><td>Safra</td><td>Uma plantação, do começo ao fim.</td></tr>
+<tr><td>Cultura</td><td>O que você planta (milho, feijão…).</td></tr>
+<tr><td>Lançamento</td><td>Qualquer coisa anotada, como uma despesa ou uma venda.</td></tr>
+<tr><td>Talhão</td><td>Um pedaço do terreno, uma divisão da sua área.</td></tr>
+<tr><td>Estimativa</td><td>O quanto você <em>acha</em> que vai colher.</td></tr>
+<tr><td>Anular</td><td>Cancelar uma anotação, mas deixando registrado que ela existiu.</td></tr>
+<tr><td>Cópia de segurança</td><td>Um arquivo com todas as suas anotações, para guardar fora do celular.</td></tr>
+<tr><td>Mão de obra</td><td>O trabalho das pessoas: empregados, diaristas e a família.</td></tr>
+</table>
+
+<h2>Perguntas que todo mundo faz</h2>
+<h3>Perdi o sinal de internet. Posso continuar usando?</h3>
+<p>Pode. O app funciona sem internet. Só a previsão do tempo e o mapa precisam dela.</p>
+<h3>Apareceu “Há uma versão nova”. O que eu faço?</h3>
+<p>Toque em <b class="botao">Atualizar agora</b>. É só o app ficando melhor. Suas anotações não se perdem.</p>
+<h3>Outra pessoa pode ver minhas anotações?</h3>
+<p>Não. Tudo fica só no seu celular. Não existe conta, nem senha de entrada, nem nuvem.</p>
+<h3>Posso usar em dois celulares ao mesmo tempo?</h3>
+<p>Ainda não. Cada celular tem o seu próprio caderno. Para passar o caderno de um para o outro, use a cópia de segurança.</p>
+<h3>A tela ficou escura demais (ou clara demais).</h3>
+<p>No alto da tela, no canto direito, tem um botão com uma <strong>lua</strong>. Toque nele para trocar entre o tema escuro e o claro. O escuro gasta menos bateria.</p>
+<h3>Apertei um botão sem querer.</h3>
+<p>Toque no <strong>X</strong> no canto da janela para fechar sem salvar. Nada é gravado até você tocar no botão verde de salvar.</p>
+
+<p style="text-align:center;margin-top:3em;color:var(--suave)">AgroPulso · caderno de campo de uso pessoal</p>
+</main>
+</body>
+</html>
