@@ -6,6 +6,9 @@
   --warn-bg: #241b08; --err-bg: #2a1010; --ok-bg: #0d2216; --focus: #19d3c5; --shadow: rgba(0, 0, 0, .55);
   --beat: 3.2s; /* o mesmo ritmo move o nome da marca e o resultado da safra */
   --mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
+  /* Formas: o vocabulário todo do app. Cartão e bloco de ação são os maiores e se espelham; avisos e campos são os menores. */
+  --r-card: 28px 8px 28px 8px; --r-card-alt: 8px 28px 8px 28px;
+  --r-note: 4px 18px 4px 18px; --r-note-alt: 18px 4px 18px 4px; --r-field: 14px 4px 14px 4px; --r-pill: 99px;
   --dock-h: 76px; color-scheme: dark;
 }
 /* O app.js sempre grava data-theme="dark" ou "light" (o modo automático segue o sistema por JavaScript). */
@@ -34,12 +37,12 @@ body {
 .logo-wrap { position: relative; isolation: isolate; flex: none; width: 42px; height: 42px; border-radius: 13px; overflow: visible; }
 .logo-wrap::after { content: ""; position: absolute; inset: -6px; border-radius: 50%; background: radial-gradient(closest-side, var(--glow), transparent); opacity: .5; z-index: -1; pointer-events: none; animation: beat var(--beat) ease-in-out infinite; }
 .brand .logo { width: 100%; height: 100%; display: block; border-radius: 13px; background: #000; overflow: hidden; }
-.mark { display: block; width: min(100%, 360px); height: auto; margin: 0 auto 8px; border-radius: 18px 4px 18px 4px; background: #000; overflow: hidden; }
+.mark { display: block; width: min(100%, 360px); height: auto; margin: 0 auto 8px; border-radius: var(--r-note-alt); background: #000; overflow: hidden; }
 .wordmark { position: relative; isolation: isolate; font: 700 1.05rem/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; }
 .wordmark b { color: var(--primary); }
 .wordmark::after { content: ""; position: absolute; inset: -10px -14px -10px 30%; background: radial-gradient(closest-side, var(--glow), transparent); opacity: .35; z-index: -1; pointer-events: none; animation: beat var(--beat) ease-in-out infinite; }
 .section-title { margin: 0 0 0 auto; font: 600 .78rem var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
-.badge { display: none; padding: 3px 12px; border-radius: 99px; border: 1px solid var(--line); font: .75rem var(--mono); color: var(--muted); }
+.badge { display: none; padding: 3px 12px; border-radius: var(--r-pill); border: 1px solid var(--line); font: .75rem var(--mono); color: var(--muted); }
 .badge::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--primary); margin-right: 8px; }
 .badge.off { display: inline-block; color: var(--warn); border-color: var(--warn); } .badge.off::before { background: var(--warn); }
 .icon-btn { display: inline-grid; place-items: center; width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--text); cursor: pointer; }
@@ -71,7 +74,7 @@ body {
 /* Gaveta: sobe de baixo no celular, entra pela direita no computador. */
 .sheet { border: 1px solid var(--line); padding: 0; margin: auto 0 0 0; width: 100%; max-width: 100%; max-height: 90dvh; overflow: auto; color: var(--text);
   background: linear-gradient(180deg, var(--surface-2), var(--surface)); border-radius: 30px 30px 0 0; overscroll-behavior: contain; }
-.sheet::backdrop { background: rgba(0, 0, 0, .62); backdrop-filter: blur(3px); }
+.sheet::backdrop { background: rgba(0, 0, 0, .62);  }
 .sheet[open] { animation: rise .22s ease-out; }
 .sheet-head { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px 8px; background: var(--surface-2); }
 .sheet-head h2 { margin: 0; }
@@ -87,4 +90,4 @@ body {
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } .ln { stroke-dashoffset: 0; } .dot { display: none; } }
 /* Só aparece depois que guard.js confirma que a página não está dentro de uma moldura de outro site. */
 html:not(.live) body { visibility: hidden; }
-.no-js { visibility: visible; margin: 24px 16px; padding: 14px; border: 1px solid var(--line); border-radius: 14px 4px 14px 4px; }
+.no-js { visibility: visible; margin: 24px 16px; padding: 14px; border: 1px solid var(--line); border-radius: var(--r-field); }
