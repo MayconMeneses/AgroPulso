@@ -1,6 +1,8 @@
 import { formatMoney, formatQuantity } from './app/domain/decimal.js';
 import { dashboard } from './app/reports/dashboard.js';
+import { listFarms } from './app/domain/farms.js';
 import { chip, h, lines, ring, STATUS, table } from './ui.js';
+import { localBlock } from './views-local.js';
 
 let selected = null;
 
@@ -53,7 +55,8 @@ export async function painel(db, rerender) {
       stat('Recebido', formatMoney(r.recebidoCents)),
       stat('A receber', formatMoney(r.aReceberCents), '', 'alt'),
       grafico, colheita, pend),
-    r.avisos.map((a) => h('div', { class: 'callout' }, a)),
+    await localBlock(db, (await listFarms(db)).filter((f) => f.id === cur.farmId), rerender),
+    ...r.avisos.map((a) => h('div', { class: 'callout' }, a)), // espalhado: replaceChildren não aceita lista dentro de lista
     r.excluidos.length ? h('p', { class: 'muted small' }, `Fora desta conta: ${r.excluidos.join('; ')}.`) : '',
   ];
 }

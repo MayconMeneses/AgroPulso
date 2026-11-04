@@ -23,9 +23,14 @@ Limite: uma instalação feita **antes** desta versão não tem esse aviso; ela 
 - A CSP passou a permitir **somente** `https://api.open-meteo.com` (conexão) e `https://tile.openstreetmap.org` (imagem). Há teste que trava isso.
 - A política de privacidade do app (LGPD) precisa citar esses dois serviços antes de qualquer publicação. NOT_RUN.
 
-## Riscos e pendências do dono (UNKNOWN até confirmar nos termos de cada serviço)
-- Open-Meteo: o uso gratuito é para fins **não comerciais**. Se o AgroPulso for vendido, é preciso plano pago com chave. POSSIBLE; confirmar nos termos.
-- OpenStreetMap: os quadros públicos aceitam uso leve e pedem identificação e crédito (o crédito está na tela). Com muitos usuários, é preciso um provedor de mapas contratado. POSSIBLE.
+## Licenças (decisão do dono em 2026-11-03: o AgroPulso é só para uso próprio)
+- Open-Meteo: o uso gratuito é para fins **não comerciais**; para uso próprio isso basta. **Se um dia o app for vendido ou oferecido a clientes, reavaliar** (plano pago com chave). Não confirmado nos termos do serviço.
+- OpenStreetMap: os quadros públicos aceitam uso leve e pedem identificação e crédito (o crédito está na tela). Uso próprio é leve. Com muitos usuários, seria preciso um provedor de mapas contratado.
+
+## Localização automática (pedido do dono, mesmo dia)
+Com internet e sem local salvo, o app pede a localização do aparelho (uma vez por sessão e por propriedade; o navegador mostra a própria pergunta de permissão). Se a pessoa permitir, o local é salvo no aparelho e o tempo e o mapa aparecem sozinhos no Painel e em Cadastros; a previsão fica 30 minutos em memória para não buscar a cada tela. Se negar, o app segue normal e oferece digitar o local. "Remover o local" para tudo. Isto troca a regra anterior ("só no toque do botão"): agora o envio do local aproximado acontece sempre que a tela abre com internet, e o aviso na tela diz isso.
+
+## Pendências
 - Não há desenho de talhão no mapa: só o ponto da propriedade. Contorno de talhão precisa de decisão de fornecedor e de modelo de dados.
 - Previsão e mapa não ficam guardados: sem internet, não aparecem.
 

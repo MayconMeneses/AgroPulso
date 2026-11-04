@@ -4,6 +4,7 @@ import type { CycleResult } from '../domain/results.ts';
 
 export interface DashboardCycle {
   cycleId: string;
+  farmId: string;
   farmName: string;
   cropName: string;
   status: string;
@@ -21,11 +22,11 @@ export interface Dashboard {
 // Só leitura: nada aqui grava no banco.
 export async function dashboard(db: Database): Promise<Dashboard> {
   const cycles = await db.all(
-    "select c.id, c.status, f.name as farm, t.name as crop from crop_cycle c join farm f on f.id = c.farm_id join crop_type t on t.id = c.crop_type_id where c.status in ('PLANEJADA','EM_ANDAMENTO') order by f.name, c.created_at, c.id",
+    "select c.id, c.status, f.id as farm_id, f.name as farm, t.name as crop from crop_cycle c join farm f on f.id = c.farm_id join crop_type t on t.id = c.crop_type_id where c.status in ('PLANEJADA','EM_ANDAMENTO') order by f.name, c.created_at, c.id",
   );
   const activeCycles: DashboardCycle[] = [];
   for (const c of cycles) {
-    activeCycles.push({ cycleId: String(c.id), farmName: String(c.farm), cropName: String(c.crop), status: String(c.status), result: await cycleResult(db, String(c.id)) });
+    activeCycles.push({ cycleId: String(c.id), farmId: String(c.farm_id), farmName: String(c.farm), cropName: String(c.crop), status: String(c.status), result: await cycleResult(db, String(c.id)) });
   }
   const pending = await db.all(
     "select a.id, a.cycle_id, a.occurred_on, t.name from field_activity a join activity_type t on t.id = a.type_id where a.state = 'PLANEJADA' order by a.occurred_on, a.id",
