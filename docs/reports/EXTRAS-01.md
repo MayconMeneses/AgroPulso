@@ -62,5 +62,5 @@ Total: 87 testes. Não existe "desfazer anulação" nem "desfazer remoção de a
 - Anular o trabalho anula a despesa dele, com o motivo; a despesa gerada por trabalho não se anula sozinha. A safra encerrada pede justificativa, como nas demais.
 - Resumo por pessoa e lista na tela "Lançamentos" da safra.
 - Defeito achado pelos testes e corrigido: datas impossíveis (mês 13, dia 40) causavam erro interno em vez de mensagem em português (`guards.ts` e `cycles.ts`).
-- 97 testes (eram 87). Conferido no navegador: contratado por diária (2,5 dias x R$ 150 = R$ 375 no custo) e família mensal (50 % de R$ 1.800 = R$ 900 na linha separada).
+- 96 testes (eram 87). Conferido no navegador: contratado por diária (2,5 dias x R$ 150 = R$ 375 no custo) e família mensal (50 % de R$ 1.800 = R$ 900 na linha separada).
 - Não feito: relatório PDF/CSV por pessoa (o CSV já traz a despesa com o nome na coluna de quem recebeu); salário proporcional por dias do mês; 13º, férias e encargos (o app registra o que você declara, não faz folha de pagamento).
