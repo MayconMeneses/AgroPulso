@@ -41,6 +41,7 @@ const ICONS = {
   talhao: 'M4 4h16v16H4zM4 12h16M12 4v16',
   pessoa: 'M12 4a4 4 0 100 8 4 4 0 000-8zM4 20c0-4 3.5-6 8-6s8 2 8 6',
   trabalho: 'M12 4a4 4 0 100 8 4 4 0 000-8zM4 20c0-4 3.5-6 8-6s8 2 8 6M17 3l2 2 3-3',
+  ok: 'M5 12.5l4.5 4.5L19 7',
   fechar: 'M6 6l12 12M18 6L6 18',
   escuro: 'M20 14.5A8 8 0 019.5 4 8 8 0 1020 14.5z',
   claro: 'M12 8a4 4 0 100 8 4 4 0 000-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
@@ -144,6 +145,16 @@ export function tag(kind) {
   return h('span', { class: `tag tag-${kind}`, title: hint }, label);
 }
 
+// Preferências só de conveniência (última unidade usada etc.). Se o navegador bloquear o armazenamento, o app segue normal.
+export function prefGet(k) { try { return localStorage.getItem(k); } catch { return null; } }
+export function prefSet(k, v) { try { localStorage.setItem(k, v); } catch { /* sem armazenamento: ignora */ } }
+
+// Tela vazia que diz o que fazer em seguida, com botões. actions: [[rótulo, função, principal?]]
+export function emptyState(title, text, actions = []) {
+  return h('section', { class: 'panel vazio' }, h('h2', {}, title), h('p', {}, text),
+    actions.length ? h('div', { class: 'row' }, actions.map(([label, fn, primary]) => h('button', { class: `btn ${primary ? 'primary' : ''}`.trim(), type: 'button', onclick: fn }, label))) : '');
+}
+
 export function chip(label, active, onclick) {
   return h('button', { class: 'chip', type: 'button', 'aria-pressed': active ? 'true' : 'false', onclick }, label);
 }
@@ -170,6 +181,8 @@ export function form(fields, submitLabel, onSubmit) {
     let input;
     if (fd.type === 'select') {
       input = h('select', { name: fd.name }, h('option', { value: '' }, fd.placeholder ?? 'Escolha…'), (fd.options ?? []).map(([v, l]) => h('option', { value: v }, l)));
+      const initial = fd.value ?? (fd.remember ? prefGet(`ult_${fd.remember}`) : null); // lembra a última escolha para a pessoa não repetir
+      if (initial) input.value = initial;
     } else if (fd.type === 'textarea') input = h('textarea', { name: fd.name, rows: 3, maxlength: 2000 });
     else input = h('input', { name: fd.name, type: fd.type ?? 'text', inputmode: fd.inputmode, autocomplete: 'off', maxlength: (fd.type ?? 'text') === 'text' ? 120 : undefined });
     f.append(h('label', { class: fd.type === 'checkbox' ? 'check' : '' }, fd.type === 'checkbox' ? [input, fd.label] : [fd.label, fd.hint ? h('span', { class: 'muted' }, ` (${fd.hint})`) : '', input]));
@@ -184,6 +197,7 @@ export function form(fields, submitLabel, onSubmit) {
     }
     try {
       await onSubmit(values, f);
+      for (const fd of fields) if (fd.remember && values[fd.name]) prefSet(`ult_${fd.remember}`, String(values[fd.name]));
     } catch (e) {
       fail(e);
     }

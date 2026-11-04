@@ -78,3 +78,14 @@ Em Safras > Lançamentos, três seções novas: **Colheitas**, **Vendas** e **At
 - Depois de corrigir, o app repete o aviso de coerência (venda acima da colheita, colheita acima da estimativa) se for o caso.
 - O valor de antes e o de depois ficam no histórico de cada correção. Conferido no navegador: sem motivo recusa; correção de colheita (20 para 18) e de venda (R$ 4.000 para R$ 4.100) aplicadas e o aviso de estimativa apareceu. A tela de atividade não foi exercitada à mão (o código de domínio tem teste).
 
+
+## Rodada 6 (2026-11-05): fácil de entender para quem usa
+- **Primeiros passos** no Painel (4 passos: propriedade, cultura, safra, primeira anotação). Cada botão abre a janela do passo, sem a pessoa procurar o cadastro. Some sozinho quando os 4 estão feitos. `src/domain/guide.ts`, `web/views-guia.js`.
+- **Telas vazias com botão** (Painel, Registrar, Estoque, Relatório) que dizem o que fazer em seguida, em vez de só "nada aqui".
+- **Lembrete de cópia de segurança** no Painel: aparece para quem já anotou algo e nunca guardou cópia, ou guardou há 30 dias ou mais. A data da última cópia é gravada ao baixar (comum ou com senha) e vai junto no backup.
+- **Aviso de espaço** na tela de cópia: quanto o app usa e quanto o aparelho reserva; passa a avisar acima de 80%.
+- **Avisos do dia** no Painel: tarefa planejada que passou da data (de safra aberta), venda sem receber há mais de 30 dias e item de estoque no fim, cada um com botão para a tela certa.
+- **Registrar mais rápido:** a última categoria e a última unidade usadas já vêm escolhidas (preferência só neste aparelho).
+- Textos novos em linguagem simples ("Cadastre sua propriedade", "Faz 30 dias que você guardou a última cópia"). Passou pelo detector da skill sem-cara-de-ia (o emoji de "feito" virou ícone de traço).
+- 121 testes (eram 116). Conferido no navegador começando do zero: os 3 passos pelas janelas, passo 4 leva a Registrar, categoria lembrada na segunda despesa, lembrete de cópia some depois de baixar, 360 px sem rolagem lateral e sem alvo abaixo de 44 px.
+- Não verificado: aparelho real; o texto dos avisos com pessoas de verdade (nenhuma testou).

@@ -6,11 +6,10 @@ import { createCostCategory, listCostCategories } from './app/domain/financial.j
 import { createWorker, listWorkers } from './app/domain/labor.js';
 import { createPlot, listPlots } from './app/domain/plots.js';
 import { createUnit, listUnits, setConversion } from './app/domain/units.js';
+import { FUSOS } from './views-guia.js';
 import { localBlock } from './views-local.js';
 import { form, h, icon, openSheet, say } from './ui.js';
 
-// Fusos do Brasil. O usuário escolhe; não há fuso padrão (RN-AG-022).
-const FUSOS = [['America/Recife', 'Recife'], ['America/Fortaleza', 'Fortaleza'], ['America/Bahia', 'Salvador (Bahia)'], ['America/Maceio', 'Maceió'], ['America/Sao_Paulo', 'São Paulo'], ['America/Manaus', 'Manaus'], ['America/Cuiaba', 'Cuiabá'], ['America/Belem', 'Belém'], ['America/Rio_Branco', 'Rio Branco']];
 
 // Cadastros em blocos: cada bloco mostra o que já existe e abre uma gaveta para adicionar.
 export async function cadastros(db, rerender) {

@@ -114,3 +114,16 @@ details > summary { cursor: pointer; min-height: 44px; display: flex; align-item
 .solo-box { max-width: 420px; text-align: center; }
 .solo-box img { border-radius: 24px; }
 .solo-box .btn { margin-top: 12px; }
+/* Primeiros passos, avisos e telas vazias */
+.guia .passos { list-style: none; margin: 8px 0 14px; padding: 0; display: grid; gap: 10px; }
+.guia .passos li { display: flex; gap: 12px; align-items: flex-start; opacity: .7; }
+.guia .passos li.agora, .guia .passos li.feito { opacity: 1; }
+.guia .marca { flex: none; width: 28px; height: 28px; display: grid; place-items: center; border: 2px solid var(--line); border-radius: 50%; font: 700 .8rem var(--mono); }
+.guia li.agora .marca { border-color: var(--primary); color: var(--primary); }
+.guia li.feito .marca { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
+.avisos { margin: 0 0 14px; }
+.avisos h2 { margin-bottom: 8px; }
+.aviso { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 12px 14px; margin-bottom: 8px; border-left: 4px solid var(--warn); border-radius: var(--r-note); background: var(--warn-bg); }
+.aviso p { flex: 1 1 220px; margin: 0; }
+.vazio .row { margin-top: 10px; }
+.guia .marca .ico { width: 16px; height: 16px; stroke-width: 3; }

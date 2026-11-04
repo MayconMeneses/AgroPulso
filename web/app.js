@@ -9,7 +9,7 @@ import { painel } from './views-painel.js';
 import { backup, relatorio } from './views-relatorio.js';
 import { registrar } from './views-registrar.js';
 import { safras } from './views-safras.js';
-import { animatedMark, fail, form, h, icon, say } from './ui.js';
+import { animatedMark, fail, form, h, icon, prefGet, prefSet, say } from './ui.js';
 
 // [id, rótulo completo, rótulo curto da barra]
 const TABS = [['painel', 'Painel', 'Painel'], ['registrar', 'Registrar', 'Registrar'], ['safras', 'Safras', 'Safras'], ['estoque', 'Estoque', 'Estoque'], ['cadastros', 'Cadastros', 'Cadastros'], ['relatorio', 'Relatório e cópia dos dados', 'Relatório']];
@@ -19,8 +19,6 @@ let tab = 'painel';
 let author = '';
 
 // Preferências de tela: só conveniência. Se o navegador bloquear o armazenamento, o app segue funcionando.
-function prefGet(k) { try { return localStorage.getItem(k); } catch { return null; } }
-function prefSet(k, v) { try { localStorage.setItem(k, v); } catch { /* sem armazenamento: ignora */ } }
 
 // A identidade do app é preto e verde: o padrão é o tema escuro. "Automático" segue o sistema; "Claro" fica à escolha da pessoa.
 const systemLight = matchMedia('(prefers-color-scheme: light)');
@@ -54,7 +52,8 @@ function drawNav() {
 }
 
 // Relatório e cópia de segurança dividem a mesma aba, para a barra de baixo caber em telas de 320 px.
-const VIEWS = { painel, registrar: (d, r) => registrar(d, r, author), safras: (d, r) => safras(d, r, author), estoque: (d, r) => estoque(d, r, author), cadastros, relatorio: async (d, r) => [...(await relatorio(d, r)), ...(await backup(d, r))] };
+const go = (id) => { tab = id; say(''); render(); window.scrollTo(0, 0); }; // leva para outra aba (usado pelos botões das telas vazias e dos avisos)
+const VIEWS = { painel: (d, r) => painel(d, r, go), registrar: (d, r) => registrar(d, r, author, go), safras: (d, r) => safras(d, r, author), estoque: (d, r) => estoque(d, r, author, go), cadastros, relatorio: async (d, r) => [...(await relatorio(d, r, go)), ...(await backup(d, r))] };
 
 async function render() {
   drawNav();

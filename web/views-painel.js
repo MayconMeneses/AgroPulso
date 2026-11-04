@@ -1,7 +1,8 @@
 import { formatMoney, formatQuantity } from './app/domain/decimal.js';
 import { dashboard } from './app/reports/dashboard.js';
 import { listFarms } from './app/domain/farms.js';
-import { chip, h, lines, ring, STATUS, table, tag } from './ui.js';
+import { avisos, primeirosPassos } from './views-guia.js';
+import { chip, emptyState, h, lines, ring, STATUS, table, tag } from './ui.js';
 import { localBlock } from './views-local.js';
 
 let selected = null;
@@ -9,10 +10,14 @@ let selected = null;
 const stat = (label, value, note, extra = '', kind = 'digitado') => h('div', { class: `panel stat half ${extra}`.trim() }, h('span', { class: 'eyebrow' }, label, tag(kind)), h('div', { class: 'stat-value' }, value), note ? h('div', { class: 'stat-note muted small' }, note) : '');
 
 // Painel em mosaico: resultado da safra em destaque, números em blocos e uma linha por mês.
-export async function painel(db, rerender) {
+export async function painel(db, rerender, go) {
   const d = await dashboard(db);
+  const guia = await primeirosPassos(db, go, rerender);
+  const topo = [guia, await avisos(db, go)].filter(Boolean);
   if (d.activeCycles.length === 0) {
-    return [h('section', { class: 'panel' }, h('h2', {}, 'Nenhuma safra ativa'), h('p', { class: 'muted' }, 'Abra uma safra em "Safras" para ver aqui o custo, as vendas e o resultado.'))];
+    if (guia) return topo; // os primeiros passos já dizem o que fazer; um segundo aviso de "vazio" só poluiria
+    const temSafra = Number((await db.all('select count(*) as n from crop_cycle'))[0]?.n) > 0;
+    return [...topo, emptyState('Nenhuma safra em andamento', temSafra ? 'Suas safras estão como rascunho, planejadas ou já terminaram. Marque uma como "iniciada" em Safras para ver aqui o custo, as vendas e o resultado.' : 'Quando você abrir uma safra e anotar custos e vendas, o resultado aparece aqui.', temSafra ? [['Ver minhas safras', () => go('safras'), true]] : [])];
   }
   const cur = d.activeCycles.find((c) => c.cycleId === selected) ?? d.activeCycles[0];
   const r = cur.result;
@@ -48,6 +53,7 @@ export async function painel(db, rerender) {
     d.pendingActivities.length ? h('ul', { class: 'timeline' }, d.pendingActivities.map((p) => h('li', {}, h('strong', {}, p.occurredOn), ` · ${p.typeName}`))) : h('p', { class: 'muted' }, 'Nenhuma tarefa planejada.'));
 
   return [
+    ...topo,
     picker,
     h('div', { class: 'bento' },
       hero,

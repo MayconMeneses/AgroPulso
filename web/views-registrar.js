@@ -5,7 +5,7 @@ import { listCostCategories, recordEntry } from './app/domain/financial.js';
 import { listWorkers, recordWork } from './app/domain/labor.js';
 import { listHarvests, listSales, recordHarvest, recordReceipt, recordSale } from './app/domain/production.js';
 import { listUnits } from './app/domain/units.js';
-import { chip, form, h, icon, openSheet, say } from './ui.js';
+import { chip, emptyState, form, h, icon, openSheet, say } from './ui.js';
 
 let selected = '';
 
@@ -21,9 +21,13 @@ const ACTIONS = [
 
 // Registrar vira uma grade de ações grandes; cada uma abre uma gaveta só com os campos daquela ação.
 // A chave de repetição nasce quando a gaveta abre: clicar duas vezes em "Salvar" não duplica o registro (RN-AG-006).
-export async function registrar(db, rerender, author) {
+export async function registrar(db, rerender, author, go) {
   const cycles = await db.all("select c.id, c.farm_id, c.status, t.name as crop, f.name as farm from crop_cycle c join crop_type t on t.id = c.crop_type_id join farm f on f.id = c.farm_id where c.status not in ('CONCLUIDA','CANCELADA') order by f.name, c.created_at");
-  if (cycles.length === 0) return [h('section', { class: 'panel' }, h('h2', {}, 'Nada para registrar ainda'), h('p', { class: 'muted' }, 'Cadastre uma propriedade e uma cultura, e abra uma safra em "Safras".'))];
+  if (cycles.length === 0) {
+    const base = (await db.all('select (select count(*) from farm) as f, (select count(*) from crop_type) as c'))[0];
+    const pronto = Number(base?.f) > 0 && Number(base?.c) > 0;
+    return [emptyState('Ainda não dá para anotar', pronto ? 'Para anotar custos, atividades e vendas você precisa de uma safra em andamento. Abra ou inicie uma em Safras.' : 'Antes de anotar, cadastre sua propriedade e o que você planta. O Painel mostra o passo a passo.', [pronto ? ['Ir para Safras', () => go('safras'), true] : ['Ver o passo a passo', () => go('painel'), true]])];
+  }
   if (!cycles.some((c) => c.id === selected)) selected = String(cycles[0].id);
   const cycle = cycles.find((c) => c.id === selected);
   const picker = cycles.length > 1 ? h('div', { class: 'chips', role: 'group', 'aria-label': 'Safra' }, cycles.map((c) => chip(`${c.farm} · ${c.crop}`, c.id === selected, () => { selected = String(c.id); rerender(); }))) : '';
@@ -70,7 +74,7 @@ export async function registrar(db, rerender, author) {
           box.append(form([
             { name: 'amount', label: 'Valor em reais', hint: 'ex.: 1234,56', inputmode: 'decimal' },
             { name: 'date', label: expense ? 'Data do custo' : 'Data da entrada', type: 'date' },
-            ...(expense ? [{ name: 'paid', label: 'Data do pagamento', hint: 'vazio se ainda não pagou', type: 'date' }, { name: 'cat', label: 'Categoria', type: 'select', options: cats, placeholder: 'Sem categoria' }, { name: 'family', label: 'É mão de obra da própria família', type: 'checkbox' }] : []),
+            ...(expense ? [{ name: 'paid', label: 'Data do pagamento', hint: 'vazio se ainda não pagou', type: 'date' }, { name: 'cat', label: 'Categoria', type: 'select', options: cats, placeholder: 'Sem categoria', remember: 'cat' }, { name: 'family', label: 'É mão de obra da própria família', type: 'checkbox' }] : []),
             { name: 'who', label: expense ? 'Para quem foi pago' : 'De quem veio' },
             { name: 'src', label: 'Fonte do dinheiro', hint: 'opcional' },
           ], 'Salvar', async (v) => {
@@ -80,14 +84,14 @@ export async function registrar(db, rerender, author) {
         } else if (kind === 'harvest') {
           box.append(form([
             { name: 'qty', label: 'Quantidade colhida', inputmode: 'decimal' },
-            { name: 'unit', label: 'Unidade', type: 'select', options: units },
+            { name: 'unit', label: 'Unidade', type: 'select', options: units, remember: 'un' },
             { name: 'date', label: 'Data da colheita', type: 'date' },
           ], 'Salvar colheita', async (v) => { const hv = await recordHarvest(db, { cycleId, harvestedOn: v.date, quantityMicro: parseQuantity(v.qty, 'Quantidade'), unitId: v.unit, author, idempotencyKey: key }); await ok(hv.warning ? `Colheita salva. Atenção: ${hv.warning}` : 'Colheita salva.'); }));
         } else if (kind === 'sale') {
           const hs = (await listHarvests(db, cycleId)).map((x) => [x.id, x.harvestedOn]);
           box.append(form([
             { name: 'qty', label: 'Quantidade vendida', inputmode: 'decimal' },
-            { name: 'unit', label: 'Unidade', type: 'select', options: units },
+            { name: 'unit', label: 'Unidade', type: 'select', options: units, remember: 'un' },
             { name: 'amount', label: 'Valor da venda em reais', inputmode: 'decimal' },
             { name: 'date', label: 'Data da venda', type: 'date' },
             { name: 'buyer', label: 'Comprador', hint: 'opcional' },

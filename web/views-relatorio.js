@@ -1,14 +1,15 @@
 import { decryptBackup, encryptBackup, isEncryptedBackup, MIN_PASSPHRASE } from './app/backup/crypto.js';
+import { markBackupDone } from './app/domain/guide.js';
 import { exportBackup } from './app/backup/export.js';
 import { importBackup, MAX_BACKUP_CHARS } from './app/backup/import.js';
 import { buildReport, toCsv } from './app/reports/csv.js';
 import { buildLaborReport } from './app/reports/labor.js';
 import { toPdf } from './app/reports/pdf.js';
-import { download, fail, form, h, icon, say } from './ui.js';
+import { download, emptyState, fail, form, h, icon, say } from './ui.js';
 
-export async function relatorio(db) {
+export async function relatorio(db, rerender, go) {
   const cycles = await db.all('select c.id, t.name as crop, f.name as farm from crop_cycle c join crop_type t on t.id = c.crop_type_id join farm f on f.id = c.farm_id order by f.name, c.created_at');
-  if (cycles.length === 0) return [h('section', { class: 'panel' }, h('h2', {}, 'Relatório'), h('p', { class: 'muted' }, 'Ainda não há safras.'))];
+  if (cycles.length === 0) return [emptyState('Ainda não há relatório', 'O relatório mostra o que você anotou em cada safra, em PDF ou planilha. Abra uma safra e anote algo primeiro.', [['Ver o passo a passo', () => go('painel'), true]])];
   const f = form([
     { name: 'cycle', label: 'Safra', type: 'select', options: cycles.map((c) => [c.id, `${c.farm} · ${c.crop}`]) },
     { name: 'from', label: 'Do dia', hint: 'opcional', type: 'date' },
@@ -28,11 +29,23 @@ export async function relatorio(db) {
   return [h('section', { class: 'panel' }, h('h2', {}, 'Relatório'), f)];
 }
 
+// Quanto o app já ocupa no aparelho, em palavras simples. Avisa quando passa de 80%.
+async function espaco() {
+  try {
+    const e = await navigator.storage?.estimate?.();
+    if (!e?.quota) return '';
+    const fmt = (n) => (n >= 1024 ** 3 ? `${(n / 1024 ** 3).toFixed(1).replace('.', ',')} GB` : `${(n / 1024 ** 2).toFixed(n >= 10 * 1024 ** 2 ? 0 : 1).replace('.', ',')} MB`);
+    const cheio = e.usage / e.quota > 0.8;
+    return h('p', { class: cheio ? 'callout' : 'muted small' }, `Espaço: o app usa ${fmt(e.usage)} dos ${fmt(e.quota)} que o aparelho reserva para ele.${cheio ? ' Está quase cheio. Guarde uma cópia e remova fotos antigas em Safras, Lançamentos.' : ''}`);
+  } catch { return ''; }
+}
+
 export async function backup(db, rerender) {
   // O navegador decide se guarda os dados de forma permanente; sem essa garantia, a cópia é a única proteção.
   let persisted = false;
   try { persisted = (await navigator.storage?.persisted?.()) === true; } catch { /* sem a API: trata como não garantido */ }
   const aviso = persisted ? '' : h('div', { class: 'callout' }, 'Este navegador não garantiu a guarda permanente dos dados. Ele pode apagá-los se faltar espaço ou se você limpar os dados do site. Baixe uma cópia com frequência.');
+  const espacoInfo = await espaco();
   const restore = form([
     { name: 'file', label: 'Arquivo de backup (.json)', type: 'file' },
     { name: 'pass', label: 'Senha do backup', hint: 'só se a cópia foi protegida com senha', type: 'password' },
@@ -58,13 +71,14 @@ export async function backup(db, rerender) {
     if (v.pass !== v.again) { say('As duas senhas não são iguais.', 'err'); return; }
     const text = await encryptBackup(await exportBackup(db), v.pass);
     download(`agropulso-backup-protegido-${today()}.json`, new TextEncoder().encode(text), 'application/json');
+    await markBackupDone(db);
     say('Cópia protegida gerada. Anote a senha: sem ela, não existe como abrir este arquivo.');
   });
   return [h('div', { class: 'bento' },
-    h('section', { class: 'panel w6' }, h('h2', {}, 'Guardar uma cópia'), aviso,
+    h('section', { class: 'panel w6' }, h('h2', {}, 'Guardar uma cópia'), aviso, espacoInfo,
       h('p', {}, 'Seus dados ficam só neste aparelho. Se ele quebrar ou o navegador limpar os dados, sem cópia não dá para recuperar.'),
       h('button', { class: 'btn primary', type: 'button', onclick: async () => {
-        try { download(`agropulso-backup-${today()}.json`, new TextEncoder().encode(await exportBackup(db)), 'application/json'); say('Cópia gerada. Guarde o arquivo em local seguro: ele contém seus dados financeiros e não tem senha.'); } catch (e) { fail(e); }
+        try { download(`agropulso-backup-${today()}.json`, new TextEncoder().encode(await exportBackup(db)), 'application/json'); await markBackupDone(db); say('Cópia gerada. Guarde o arquivo em local seguro: ele contém seus dados financeiros e não tem senha.'); } catch (e) { fail(e); }
       } }, icon('backup'), 'Baixar cópia dos dados'),
       h('details', {}, h('summary', {}, 'Cópia com senha (mais segura)'),
         h('p', { class: 'muted small' }, 'O arquivo fica cifrado: quem pegar não lê nada sem a senha. Se você esquecer a senha, a cópia não abre mais, e eu não tenho como recuperar.'), protectedCopy)),

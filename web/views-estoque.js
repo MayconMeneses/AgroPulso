@@ -2,16 +2,16 @@ import { formatQuantity, parseQuantity } from './app/domain/decimal.js';
 import { listFarms } from './app/domain/farms.js';
 import { createStockItem, listMovements, listStockItems, recordMovement } from './app/domain/stock.js';
 import { listUnits } from './app/domain/units.js';
-import { chip, form, h, icon, openSheet, say, tag } from './ui.js';
+import { chip, emptyState, form, h, icon, openSheet, say, tag } from './ui.js';
 
 let selectedFarm = '';
 const KINDS = { ENTRADA: 'Entrada', SAIDA: 'Saída', AJUSTE: 'Ajuste' };
 
 // Estoque de insumos por propriedade. Mostra o saldo de cada item, avisa quando chega ao mínimo e abre uma gaveta
 // por ação. O saldo é calculado a partir dos movimentos; saída maior que o saldo é recusada pelo domínio.
-export async function estoque(db, rerender, author) {
+export async function estoque(db, rerender, author, go) {
   const [farms, units] = await Promise.all([listFarms(db), listUnits(db)]);
-  if (farms.length === 0) return [h('section', { class: 'panel' }, h('h2', {}, 'Estoque'), h('p', { class: 'muted' }, 'Cadastre uma propriedade em "Cadastros" para começar o estoque.'))];
+  if (farms.length === 0) return [emptyState('Estoque', 'O estoque guarda o que você tem de adubo, semente, ração e outros insumos. Para começar, cadastre sua propriedade.', [['Ver o passo a passo', () => go('painel'), true]])];
   if (!farms.some((f) => f.id === selectedFarm)) selectedFarm = farms[0].id;
   const unitName = new Map(units.map((u) => [u.id, u.name]));
   const items = await listStockItems(db, selectedFarm);
@@ -68,6 +68,6 @@ export async function estoque(db, rerender, author) {
   return [
     h('div', { class: 'page-head' }, h('h2', {}, 'Estoque'), h('button', { class: 'btn primary', type: 'button', onclick: novoItem }, icon('registrar'), 'Novo item')),
     picker,
-    items.length ? h('div', { class: 'cad-grid' }, items.map(card)) : h('section', { class: 'panel' }, h('p', { class: 'muted' }, 'Nenhum item ainda. Toque em "Novo item" para cadastrar adubo, semente, defensivo ou ração.')),
+    items.length ? h('div', { class: 'cad-grid' }, items.map(card)) : h('section', { class: 'panel' }, h('h2', {}, 'Nenhum item ainda'), h('p', {}, 'Cadastre aqui o que você guarda: adubo, semente, defensivo, ração. Depois anote as entradas (compras) e as saídas (uso), e o app calcula quanto sobra e avisa quando estiver acabando.')),
   ];
 }
