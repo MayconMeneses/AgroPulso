@@ -40,7 +40,7 @@ Legenda: CONFIRMADO = reproduzido ou provado por teste; POTENCIAL = risco que de
 | F-14 | CONFIRMADO | baixa | Código morto: `getFarm`, regra `.pulse-line` e animação `travel` sem uso | Removidos |
 | F-15 | CONFIRMADO | média (função) | Era possível enviar foto e nunca mais abri-la; correções de colheita, venda e atividade existem no código e não têm tela | Anexo agora tem "Baixar". As correções de colheita e venda seguem sem tela (RECOMENDAÇÃO) |
 | F-16 | CONFIRMADO | baixa | `correctEntry` aceitava mexer em despesa que veio de um dia de trabalho | Recusa, como a anulação |
-| F-17 | CONFIRMADO | média | O histórico público do Git mostra o e-mail pessoal do dono em todos os commits e 16 linhas de coautoria automática | Commits novos já saem com o e-mail privado do GitHub e sem a linha. O histórico antigo só muda reescrevendo e enviando à força: aguarda decisão do dono |
+| F-17 | CONFIRMADO | média | O histórico público do Git mostra o e-mail pessoal do dono em todos os commits e 16 linhas de coautoria automática | Corrigido em 2026-11-04: histórico reescrito com autor único (e-mail privado do GitHub) e sem linhas de coautoria, mesmo conteúdo de arquivos, cópia do histórico antigo guardada fora do repositório. O GitHub ainda guarda cópias dos pedidos de atualização antigos por um tempo |
 | F-18 | CONFIRMADO | baixa | `.claude/launch.json` estava versionado | Saiu do repositório e entrou no `.gitignore` |
 | F-19 | CONFIRMADO | baixa | Descrição do repositório desatualizada ("sem código", "foco no Nordeste") | Atualizada, com site e tópicos |
 | F-20 | POTENCIAL | média | Domínio apontado para o GitHub Pages sem verificação: se o Pages for desligado, outra conta poderia reivindicar o endereço (sequestro de subdomínio) | Parcial. O registro TXT de verificação precisa ser criado no Hostinger e não foi, porque a criação foi bloqueada e depende de nova autorização do dono |
@@ -54,10 +54,9 @@ Alertas do Dependabot, atualizações de segurança do Dependabot, gráfico de d
 
 - Autenticação em dois fatores no GitHub e no Hostinger: só o dono pode ligar.
 - Registro TXT de verificação do domínio (F-20).
-- Reescrever o histórico do Git (F-17). Antes, guardar um pacote de segurança do repositório. Os endereços antigos dos commits continuam alcançáveis no GitHub por um tempo.
-- Proteger a `main` contra envio forçado e exclusão: aplicar depois da decisão acima, senão a reescrita seria bloqueada.
+- Feito depois: histórico reescrito (F-17) e `main` protegida contra envio forçado e exclusão (regra ativa, conferida pela API do GitHub: `non_fast_forward` e `deletion`).
 - Registro CAA: não aplicado. No apex ele valeria também para o site comercial, que não deve ser tocado sem pedido, e no subdomínio `agropulso` não pode coexistir com o CNAME.
-- Três pedidos de atualização abertos pelo Dependabot (setup-node de 4.4.0 para 7.1.0 e codeql-action para a série 4): são saltos de versão principal e ainda não foram avaliados.
+- As ramificações do Dependabot foram removidas na limpeza do histórico; ele reabre as atualizações na próxima semana, e os saltos de versão principal (setup-node 7, codeql-action 4) precisam ser avaliados antes de aceitar.
 
 ## Portões
 
@@ -73,6 +72,8 @@ Alertas do Dependabot, atualizações de segurança do Dependabot, gráfico de d
 | Clickjacking em moldura real | NOT_RUN (só a lógica foi testada) |
 | HSTS | FAIL (a hospedagem não permite) |
 | Verificação de domínio | BLOCKED (aguarda autorização do dono) |
+| `main` protegida contra envio forçado e exclusão | PASS |
+| Histórico sem e-mail pessoal e sem coautoria automática | PASS |
 | Teste em iPhone e Android reais após esta rodada | NOT_RUN |
 
 ## Lista das 20 regras de site (o app é uso próprio)
