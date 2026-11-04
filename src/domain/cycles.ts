@@ -8,6 +8,7 @@ export interface Cycle {
   id: string;
   farmId: string;
   cropTypeId: string;
+  plotId: string | null;
   status: CycleStatus;
   plannedStart: string | null;
   plannedEnd: string | null;
@@ -16,7 +17,7 @@ export interface Cycle {
   version: number;
 }
 
-const COLUMNS = 'id, farm_id, crop_type_id, status, planned_start, planned_end, actual_start, reason, version';
+const COLUMNS = 'id, farm_id, crop_type_id, plot_id, status, planned_start, planned_end, actual_start, reason, version';
 
 function text(v: unknown): string | null {
   return v === null || v === undefined ? null : String(v);
@@ -27,6 +28,7 @@ function toCycle(r: Record<string, unknown>): Cycle {
     id: String(r.id),
     farmId: String(r.farm_id),
     cropTypeId: String(r.crop_type_id),
+    plotId: text(r.plot_id),
     status: String(r.status) as CycleStatus,
     plannedStart: text(r.planned_start),
     plannedEnd: text(r.planned_end),
@@ -79,6 +81,7 @@ interface Step {
   event: string;
   set: Record<string, string>; // colunas internas, nunca vindas do usuário
   reason?: string;
+  check?: () => Promise<void>; // regra extra da transição, executada dentro da transação
 }
 
 // Muda de estado com controle de versão (RN-AG-007) e evento na mesma transação (§6, §21).
@@ -92,6 +95,7 @@ async function step(db: Database, id: string, expectedVersion: number, s: Step):
     if (!s.from.includes(cur.status)) {
       throw new DomainError('transicao_invalida', `Uma safra ${cur.status} não pode ir para ${s.to}`);
     }
+    if (s.check) await s.check();
     const cols = Object.keys(s.set);
     const sets = [...cols.map((c) => `${c} = ?`), 'status = ?', 'version = version + 1'].join(', ');
     await db.run(`update crop_cycle set ${sets} where id = ? and version = ?`, [
@@ -135,17 +139,20 @@ export async function startCycle(db: Database, id: string, version: number, inpu
   });
 }
 
-// RN-AG-021 pede colheita registrada OU motivo explícito. Ainda não há módulo de colheita (Fase 4),
-// então por enquanto só o caminho do motivo existe. Nada é tratado como "rendimento zero".
-export async function closeCycle(db: Database, id: string, version: number, input: { reason: string }) {
-  const reason = input.reason.trim();
-  if (reason === '') throw new DomainError('invalido', 'Informe a colheita ou o motivo para concluir');
+// RN-AG-021: concluir exige colheita registrada OU motivo explícito (ex.: perda total). Nunca vira "rendimento zero".
+export async function closeCycle(db: Database, id: string, version: number, input: { reason?: string }) {
+  const reason = (input.reason ?? '').trim();
   return await step(db, id, version, {
     from: ['EM_ANDAMENTO'],
     to: 'CONCLUIDA',
     event: 'crop_cycle.closed',
-    set: { reason },
-    reason,
+    set: reason === '' ? {} : { reason },
+    reason: reason === '' ? undefined : reason,
+    check: async () => {
+      if (reason !== '') return;
+      const h = await db.all('select 1 as ok from harvest_entry where cycle_id = ? limit 1', [id]);
+      if (h.length === 0) throw new DomainError('invalido', 'Informe a colheita ou o motivo para concluir');
+    },
   });
 }
 

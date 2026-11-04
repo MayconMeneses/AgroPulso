@@ -1,0 +1,12 @@
+{
+  "name": "AgroPulso",
+  "short_name": "AgroPulso",
+  "description": "Caderno de campo digital. Funciona sem internet, com os dados no aparelho.",
+  "lang": "pt-BR",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#050a07",
+  "theme_color": "#050a07",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

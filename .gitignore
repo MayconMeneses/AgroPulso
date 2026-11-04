@@ -4,3 +4,4 @@ node_modules/
 *.db
 # PDF do prompt mestre: fica fora do repositório público
 *.pdf
+dist/

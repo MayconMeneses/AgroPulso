@@ -1,6 +1,6 @@
 # PRD — AgroPulso (hipóteses a validar)
 
-Fonte: Prompt Mestre v1.0 (30/10/2026), citado como §n. Status: **proposta a validar**. Implementado até aqui (2026-11-03, código em `src/`, testes em `tests/`): base da Fase 1 e, da Fase 2, propriedade sem mapa (RF-AG-002), cultura configurável (RF-AG-013, RN-AG-019), várias safras por propriedade (RF-AG-003) e estados da safra com motivo e eventos (RN-AG-002/003/021 só pelo caminho do motivo). O resto continua sem código.
+Fonte: Prompt Mestre v1.0 (30/10/2026), citado como §n. Status: **proposta a validar**. Implementado até aqui (2026-11-03, código em `src/` e `web/`, 64 testes automáticos passando, app verificado só no Chromium do painel): fases 1 a 5 do roadmap em versão local e sem login (relatórios em `docs/reports/FASE-02` a `FASE-07`). **Não implementado:** multiusuário e papéis (RF-AG-001, RF-AG-014, ver ACCESS_MATRIX), alerta de colheita acima da estimativa (RN-AG-014), valor imputado de mão de obra familiar (RN-AG-020), consultor, estoque, mapas, clima. **Não verificado:** Android, iOS e Windows reais, checagem de tipos, piloto com produtores.
 Nenhum número, recomendação agronômica, regra ambiental ou dado externo foi acrescentado além do que o Prompt Mestre traz.
 
 ## 1. Problema e público (§1)

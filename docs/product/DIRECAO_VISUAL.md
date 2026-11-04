@@ -1,7 +1,7 @@
 # Direção visual — proposta
 
 Origem: pedido do dono em 2026-11-03 ("bem futurista, preto e verde, seguindo o ponto do agro"), alinhado ao §12 do Prompt Mestre (interface futurista, forte legibilidade, ícones próprios, estados de erro/sem conexão, WCAG 2.2 AA, ações grandes para campo sob sol, baixo consumo de dados).
-Status: **proposta**. Nenhuma tela foi construída. O §12 citava fundo marinho/verde-agro/ciano; o dono pediu preto e verde, então o ciano fica só como apoio.
+Status: **aplicada ao app em 2026-11-03** (`web/styles.css`, `web/index.html`, `web/ui.js`); validada só no Chrome emulando aparelhos, não em aparelho real nem sob sol, nem com produtores. O §12 citava fundo marinho/verde-agro/ciano; o dono pediu preto e verde, então o ciano fica só como apoio.
 
 ## Paleta proposta (tokens)
 Razões de contraste calculadas com a fórmula WCAG 2.x (script, 2026-11-03). Mínimo AA: 4,5:1 para texto, 3:1 para elementos de interface.
@@ -46,5 +46,7 @@ Bordas (#1B2B22) não foram medidas e só servem de separador; ainda falta verif
 
 ## Pendente
 - Validar a paleta com produtores em aparelho Android real (DP-011).
-- Escolher tipografia (não definida).
-- Protótipo visual: só com autorização, já que o roteiro manda terminar a Fase 0 antes de código.
+- Tipografia: sem fonte baixada de terceiros (o CSP só permite arquivos do próprio app e isso poupa dados). Texto em fonte do sistema; títulos, rótulos e números em fonte monoespaçada do sistema, o que dá o ar de instrumento. A aparência varia um pouco entre Android, iOS e Windows; não foi conferida nos três.
+- Estrutura (2º pedido do dono, 2026-11-03: mudar a forma, não a cor): barra flutuante no celular e trilho lateral no computador, painéis em mosaico com cantos assimétricos, gavetas para formulários, gráfico de linha, pulso de brilho ligado ao nome da marca. Detalhes em `docs/reports/FASE-05.md`.
+- Aplicado: tema escuro como padrão (a identidade é preto e verde), claro por escolha, automático segue o sistema; ícones próprios em traço; mostradores de números no painel; grade e brilho verde discretos, sem animação pesada (movimento desligado para quem pede menos movimento).
+- Contrastes medidos nos dois temas (texto 6,1 a 17,3; botão principal 5,4 a 11,4; borda de campo 3,8 e 4,0 contra o cartão; foco 6,0 e 10,6). O "natureza do dado" (manual, estimado, oficial) em cada cartão ainda não foi desenhado.
