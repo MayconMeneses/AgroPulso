@@ -15,12 +15,23 @@ test('migra um banco vazio até a última versão', async () => {
   assert.equal(await migrate(db, migrations), migrations.length);
   assert.equal(await currentVersion(db), migrations.length);
   assert.deepEqual(await tableNames(db), [
+    'activity_type',
     'app_meta',
+    'attachment',
     'audit_event',
+    'cost_category',
     'crop_cycle',
     'crop_type',
     'farm',
+    'field_activity',
+    'financial_entry',
+    'harvest_entry',
+    'plot',
+    'sale',
+    'sale_receipt',
     'schema_migrations',
+    'unit',
+    'unit_conversion',
   ]);
 });
 

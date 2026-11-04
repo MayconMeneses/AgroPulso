@@ -1,6 +1,6 @@
 # Modelo de dados inicial — candidato
 
-Fonte: §5, §6, §8, §17. Entidades são candidatas; criar somente as exigidas por casos de uso aprovados (§17). Implementado na migração v2 (`src/migrations/migrations.ts`): `farm`, `crop_type`, `crop_cycle` e `audit_event` (nomes no singular). Sem `plots`, `field_activities`, `financial_entries`, `harvest_entries`, `sales` e `attachments`. Ainda não há `idempotency_key` (invariante 4) nem exclusão com auditoria (invariante 6).
+Fonte: §5, §6, §8, §17. Entidades são candidatas; criar somente as exigidas por casos de uso aprovados (§17). Implementado nas migrações v2 a v5 (`src/migrations/migrations.ts`, nomes no singular): `farm`, `crop_type`, `crop_cycle`, `audit_event`, `unit`, `unit_conversion`, `plot`, `activity_type`, `field_activity`, `attachment`, `cost_category`, `financial_entry`, `harvest_entry`, `sale`, `sale_receipt`. Valores: dinheiro em centavos inteiros; quantidades e áreas em milionésimos inteiros. `idempotency_key` existe em atividade, lançamento, colheita, venda e recebimento (invariante 4); versão em propriedade, safra, atividade, lançamento, colheita e venda (invariante 5). **Ainda não há** exclusão com auditoria (invariante 6) nem `area_measured` calculada (só informada à mão).
 A cultura é referência configurável (`crop_types`), sem tabela por cultura (§8).
 
 ## Entidades candidatas e relacionamentos

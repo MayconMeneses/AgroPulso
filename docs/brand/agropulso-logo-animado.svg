@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="AgroPulso">
+  <defs>
+    <radialGradient id="g" cx="50%" cy="46%" r="50%"><stop offset="0" stop-color="#2be37f" stop-opacity=".45"/><stop offset="1" stop-color="#2be37f" stop-opacity="0"/></radialGradient>
+  </defs>
+  <style>
+    .glow{transform-origin:256px 232px;animation:beat 3.2s ease-in-out infinite}
+    .run{stroke-dasharray:60 190;animation:travel 3.2s linear infinite}
+    @keyframes beat{0%,100%{opacity:.25;transform:scale(.92)}50%{opacity:1;transform:scale(1.06)}}
+    @keyframes travel{to{stroke-dashoffset:-250}}
+    @media (prefers-reduced-motion:reduce){.glow,.run{animation:none}.run{stroke-dasharray:none}}
+  </style>
+  <rect width="512" height="512" rx="112" fill="#050a07"/>
+  <circle class="glow" cx="256" cy="232" r="210" fill="url(#g)"/>
+  <rect x="10" y="10" width="492" height="492" rx="104" fill="none" stroke="#2be37f" stroke-width="20"/>
+  <g transform="scale(4)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M64 98V58M64 58c0-16 10-26 28-28 0 16-10 28-28 28zM64 74c0-14-9-22-24-24 0 14 9 24 24 24z" stroke="#2be37f" stroke-width="8"/>
+    <path d="M22 106h22l8-12 10 18 8-10h36" stroke="#19d3c5" stroke-width="5" opacity=".35"/>
+    <path class="run" d="M22 106h22l8-12 10 18 8-10h36" stroke="#19d3c5" stroke-width="5"/>
+  </g>
+</svg>

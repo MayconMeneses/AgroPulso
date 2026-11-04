@@ -2,8 +2,13 @@
   "name": "agropulso",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=24" },
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "test": "node --test \"tests/**/*.test.ts\""
+  },
+  "dependencies": {
+    "sql.js": "1.15.2"
   }
 }

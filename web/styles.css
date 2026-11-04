@@ -1,0 +1,85 @@
+/* Tokens (docs/product/DIRECAO_VISUAL.md) e casca do app: topo enxuto, barra flutuante no celular, trilho lateral no computador. */
+:root {
+  --bg: #050a07; --surface: #0b1410; --surface-2: #101d16; --text: #e6f2ea; --muted: #8fa89a;
+  --primary: #2be37f; --on-primary: #04110a; --accent: #19d3c5; --warn: #f5b83d; --danger: #ff6b6b;
+  --line: #1b2b22; --field-line: #4f7a63; --glow: rgba(43, 227, 127, .22); --grid: rgba(43, 227, 127, .05);
+  --warn-bg: #241b08; --err-bg: #2a1010; --ok-bg: #0d2216; --focus: #19d3c5; --shadow: rgba(0, 0, 0, .55);
+  --beat: 3.2s; /* o mesmo ritmo move o nome da marca e o resultado da safra */
+  --mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
+  --dock-h: 76px; color-scheme: dark;
+}
+/* O app.js sempre grava data-theme="dark" ou "light" (o modo automático segue o sistema por JavaScript). */
+:root[data-theme="light"] {
+  --bg: #f4f8f5; --surface: #ffffff; --surface-2: #eaf3ed; --text: #0a1a12; --muted: #4a5f54;
+  --primary: #0b7a3e; --on-primary: #ffffff; --accent: #0a7a72; --warn: #8a5a00; --danger: #b3261e;
+  --line: #cfdcd3; --field-line: #6b8576; --glow: rgba(11, 122, 62, .16); --grid: rgba(11, 122, 62, .06);
+  --warn-bg: #fff3dc; --err-bg: #fde8e8; --ok-bg: #e4f4e9; --focus: #0b57d0; --shadow: rgba(10, 26, 18, .22); color-scheme: light;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; color: var(--text); font: 17px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; min-height: 100dvh;
+  background:
+    radial-gradient(1000px 420px at 70% -140px, var(--glow), transparent 70%),
+    linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 40px 40px,
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 40px 40px, var(--bg);
+}
+.skip { position: absolute; left: -999px; } .skip:focus { left: 8px; top: 8px; background: var(--surface); padding: 8px; z-index: 60; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.shell { min-height: 100dvh; padding-bottom: calc(var(--dock-h) + 24px + env(safe-area-inset-bottom)); }
+
+/* Topo: marca, nome da seção, estado da rede e tema. Sem barra de abas. */
+.topbar { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 10px; padding: 10px 16px; padding-top: calc(10px + env(safe-area-inset-top));
+  background: color-mix(in srgb, var(--bg) 78%, transparent); backdrop-filter: blur(12px); }
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand svg { width: 38px; height: 38px; flex: none; overflow: visible; }
+.wordmark { position: relative; isolation: isolate; font: 700 1.05rem/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; }
+.wordmark b { color: var(--primary); }
+.wordmark::after { content: ""; position: absolute; inset: -10px -14px -10px 30%; background: radial-gradient(closest-side, var(--glow), transparent); opacity: .35; z-index: -1; pointer-events: none; animation: beat var(--beat) ease-in-out infinite; }
+.section-title { margin: 0 0 0 auto; font: 600 .78rem var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.badge { display: none; padding: 3px 12px; border-radius: 99px; border: 1px solid var(--line); font: .75rem var(--mono); color: var(--muted); }
+.badge::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--primary); margin-right: 8px; }
+.badge.off { display: inline-block; color: var(--warn); border-color: var(--warn); } .badge.off::before { background: var(--warn); }
+.icon-btn { display: inline-grid; place-items: center; width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--text); cursor: pointer; }
+.icon-btn:hover { border-color: var(--primary); }
+.ico { width: 22px; height: 22px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Barra flutuante (celular): só a seção atual mostra o nome; as outras são ícones de 44 px. */
+.dock { position: fixed; left: 12px; right: 12px; bottom: calc(10px + env(safe-area-inset-bottom)); z-index: 30; display: flex; gap: 4px; padding: 6px;
+  border-radius: 30px; background: color-mix(in srgb, var(--surface) 90%, transparent); border: 1px solid var(--line); backdrop-filter: blur(16px);
+  box-shadow: 0 14px 40px -12px var(--shadow), 0 0 0 1px var(--glow); }
+.dock button { flex: 1 1 0; min-width: 44px; min-height: 48px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 0 6px;
+  border: 0; border-radius: 24px; background: transparent; color: var(--muted); cursor: pointer; font: inherit; }
+.dock button[aria-current="page"] { flex: 2.4 1 0; background: var(--primary); color: var(--on-primary); box-shadow: 0 0 22px -6px var(--primary); }
+.dock .label { display: none; font: 700 .72rem var(--mono); letter-spacing: .05em; text-transform: uppercase; white-space: nowrap; }
+@media (min-width: 400px) { .dock button[aria-current="page"] .label { display: inline; } }
+
+/* Computador: a barra vira trilho lateral com ícone e nome. */
+@media (min-width: 900px) {
+  .shell { display: grid; grid-template-columns: 112px minmax(0, 1fr); grid-template-rows: auto 1fr; padding-bottom: 0; }
+  .topbar { grid-column: 2; } .content { grid-column: 2; }
+  .dock { position: sticky; top: 0; left: auto; right: auto; bottom: auto; grid-column: 1; grid-row: 1 / span 2; height: 100dvh; flex-direction: column; justify-content: flex-start;
+    gap: 8px; padding: 22px 12px; border-radius: 0 34px 34px 0; border-width: 0 1px 0 0; }
+  .dock button { flex: 0 0 auto; flex-direction: column; gap: 4px; min-height: 68px; border-radius: 20px; padding: 8px 2px; }
+  .dock button[aria-current="page"] { flex: 0 0 auto; }
+  .dock .label, .dock button[aria-current="page"] .label { display: block; font-size: .68rem; letter-spacing: .02em; }
+  .badge { display: inline-block; }
+}
+
+/* Gaveta: sobe de baixo no celular, entra pela direita no computador. */
+.sheet { border: 1px solid var(--line); padding: 0; margin: auto 0 0 0; width: 100%; max-width: 100%; max-height: 90dvh; overflow: auto; color: var(--text);
+  background: linear-gradient(180deg, var(--surface-2), var(--surface)); border-radius: 30px 30px 0 0; overscroll-behavior: contain; }
+.sheet::backdrop { background: rgba(0, 0, 0, .62); backdrop-filter: blur(3px); }
+.sheet[open] { animation: rise .22s ease-out; }
+.sheet-head { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px 8px; background: var(--surface-2); }
+.sheet-head h2 { margin: 0; }
+.sheet-body { padding: 0 18px calc(24px + env(safe-area-inset-bottom)); }
+@media (min-width: 900px) {
+  .sheet { margin: 0 0 0 auto; height: 100dvh; max-height: 100dvh; width: min(480px, 100%); border-radius: 34px 0 0 34px; }
+  .sheet[open] { animation: slide .22s ease-out; }
+}
+@keyframes rise { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes slide { from { transform: translateX(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes beat { 0%, 100% { opacity: .25; transform: scale(.94); } 12% { opacity: .9; transform: scale(1.06); } 24% { opacity: .35; transform: scale(1); } 36% { opacity: .75; transform: scale(1.04); } }
+@keyframes travel { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -150; } }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } .ln { stroke-dashoffset: 0; } }
