@@ -1,7 +1,7 @@
 import type { Database } from '../storage/database.ts';
 import { recordEvent } from './audit.ts';
 import { DomainError } from './errors.ts';
-import { assertCycleWritable, assertDateText, findByKey } from './guards.ts';
+import { assertCycleWritable, assertDateText, findByKey, assertNameLength } from './guards.ts';
 
 export interface CostCategory {
   id: string;
@@ -28,6 +28,7 @@ export interface FinancialEntry {
 // RN-AG-019: as categorias de custo são do usuário. Só nomes comuns são oferecidos uma vez (defaults.ts).
 export async function createCostCategory(db: Database, input: { name: string }): Promise<CostCategory> {
   const name = input.name.trim();
+  assertNameLength(name);
   if (name === '') throw new DomainError('invalido', 'Informe o nome da categoria');
   const c = { id: crypto.randomUUID(), name };
   await db.transaction(async () => {

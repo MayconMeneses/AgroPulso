@@ -1,6 +1,7 @@
 import type { Database } from '../storage/database.ts';
 import { recordEvent } from './audit.ts';
 import { DomainError } from './errors.ts';
+import { assertNameLength } from './guards.ts';
 import { assertOutline } from './geo.ts';
 import type { FarmLocation } from './location.ts';
 import { getUnit } from './units.ts';
@@ -47,6 +48,7 @@ export async function createPlot(
   input: { farmId: string; name: string; areaDeclaredMicro?: number; areaMeasuredMicro?: number; areaUnitId?: string },
 ): Promise<Plot> {
   const name = input.name.trim();
+  assertNameLength(name);
   if (name === '') throw new DomainError('invalido', 'Informe o nome do talhão');
   const hasArea = input.areaDeclaredMicro !== undefined || input.areaMeasuredMicro !== undefined;
   if (hasArea && !input.areaUnitId) throw new DomainError('invalido', 'Informe a unidade da área');

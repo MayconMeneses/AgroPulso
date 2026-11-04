@@ -2,6 +2,7 @@ import type { Database } from '../storage/database.ts';
 import { recordEvent } from './audit.ts';
 import { MICRO } from './decimal.ts';
 import { DomainError } from './errors.ts';
+import { assertNameLength } from './guards.ts';
 
 export type UnitKind = 'area' | 'massa' | 'volume' | 'contagem';
 const KINDS: UnitKind[] = ['area', 'massa', 'volume', 'contagem'];
@@ -15,6 +16,7 @@ export interface Unit {
 // RN-AG-019: as unidades são de quem usa. Só nomes comuns são oferecidos uma vez (defaults.ts), sem fator de conversão.
 export async function createUnit(db: Database, input: { name: string; kind: UnitKind }): Promise<Unit> {
   const name = input.name.trim();
+  assertNameLength(name);
   if (name === '') throw new DomainError('invalido', 'Informe o nome da unidade');
   if (!KINDS.includes(input.kind)) throw new DomainError('invalido', 'Tipo de unidade inválido');
   const unit: Unit = { id: crypto.randomUUID(), name, kind: input.kind };

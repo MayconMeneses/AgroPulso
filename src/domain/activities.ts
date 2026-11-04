@@ -1,7 +1,7 @@
 import type { Database } from '../storage/database.ts';
 import { recordEvent } from './audit.ts';
 import { DomainError } from './errors.ts';
-import { assertCycleWritable, assertDateText, findByKey } from './guards.ts';
+import { assertCycleWritable, assertDateText, findByKey, assertNameLength } from './guards.ts';
 
 export interface ActivityType {
   id: string;
@@ -28,6 +28,7 @@ export const APPLICATION_NOTICE =
 // RN-AG-019: tipos de atividade (plantio, capina, irrigação anotada...) são do usuário; nenhum vem pronto.
 export async function createActivityType(db: Database, input: { name: string; isApplication?: boolean }): Promise<ActivityType> {
   const name = input.name.trim();
+  assertNameLength(name);
   if (name === '') throw new DomainError('invalido', 'Informe o nome do tipo de atividade');
   const t: ActivityType = { id: crypto.randomUUID(), name, isApplication: input.isApplication === true };
   await db.transaction(async () => {

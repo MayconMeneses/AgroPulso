@@ -68,7 +68,7 @@ h3 { font: 600 .78rem var(--mono); letter-spacing: .1em; text-transform: upperca
 .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .cad-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
 .cad-grid .panel { display: flex; flex-direction: column; gap: 10px; } .cad-head { display: flex; align-items: center; gap: 10px; } .cad-head .ico { color: var(--primary); }
-.cad-head h2 { margin: 0; flex: 1; } .names { display: flex; flex-wrap: wrap; gap: 6px; } .names span { padding: 2px 10px; border: 1px solid var(--line); border-radius: 99px; font-size: .85rem; }
+.cad-head h2 { margin: 0; flex: 1; } .names { display: flex; flex-wrap: wrap; gap: 6px; } .names span { max-width: 100%; padding: 2px 10px; border: 1px solid var(--line); border-radius: 14px; font-size: .85rem; overflow-wrap: anywhere; }
 
 /* Botões, campos e avisos */
 .btn, button.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 22px; border-radius: 99px; border: 1px solid var(--field-line); background: var(--surface); color: var(--text); font: 700 .82rem var(--mono); letter-spacing: .06em; text-transform: uppercase; cursor: pointer; }

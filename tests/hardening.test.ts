@@ -51,3 +51,30 @@ test('HARD: o código do app não tem sinais de armadilha: eval, innerHTML, docu
     assert.doesNotMatch(t, /(api[_-]?key|secret|passw(or)?d)\s*[:=]\s*['"][^'"]{6,}/i, f);
   }
 });
+
+test('HARD: nomes têm teto de tamanho em todos os cadastros', async () => {
+  const { freshDb } = await import('./helpers.ts');
+  const { createFarm } = await import('../src/domain/farms.ts');
+  const { createCropType } = await import('../src/domain/crop-types.ts');
+  const { createUnit } = await import('../src/domain/units.ts');
+  const { createCostCategory } = await import('../src/domain/financial.ts');
+  const { createActivityType } = await import('../src/domain/activities.ts');
+  const { createPlot } = await import('../src/domain/plots.ts');
+  const { createWorker } = await import('../src/domain/labor.ts');
+  const { createStockItem } = await import('../src/domain/stock.ts');
+  const db = await freshDb();
+  const longo = 'x'.repeat(81);
+  const ok = 'x'.repeat(80);
+  const farm = await createFarm(db, { name: ok, timezone: 'America/Recife' });
+  const kg = await createUnit(db, { name: 'kg', kind: 'massa' });
+  const recusa = (p: Promise<unknown>) => assert.rejects(p, (e: { code?: string }) => e.code === 'invalido');
+  await recusa(createFarm(db, { name: longo, timezone: 'America/Recife' }));
+  await recusa(createCropType(db, { name: longo }));
+  await recusa(createUnit(db, { name: longo, kind: 'massa' }));
+  await recusa(createCostCategory(db, { name: longo }));
+  await recusa(createActivityType(db, { name: longo }));
+  await recusa(createPlot(db, { farmId: farm.id, name: longo }));
+  await recusa(createWorker(db, { farmId: farm.id, name: longo, kind: 'FAMILIAR', payType: 'DIARIA' }));
+  await recusa(createStockItem(db, { farmId: farm.id, name: longo, unitId: kg.id }));
+  await createCropType(db, { name: ok });
+});

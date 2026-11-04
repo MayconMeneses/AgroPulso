@@ -24,13 +24,20 @@ const IDB_NAME = 'agropulso';
 const IDB_STORE = 'db';
 const IDB_KEY = 'bytes';
 
+// Uma única conexão por aba, aberta uma vez e reaproveitada. Antes cada leitura e cada gravação abria uma conexão nova e
+// nunca fechava, e elas se acumulavam durante o uso.
+let connection: Promise<IDBDatabase> | null = null;
 function idb(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
+  connection ??= new Promise((resolve, reject) => {
     const req = indexedDB.open(IDB_NAME, 1);
     req.onupgradeneeded = () => req.result.createObjectStore(IDB_STORE);
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
+    req.onsuccess = () => {
+      req.result.onversionchange = () => { req.result.close(); connection = null; }; // outra aba ou limpeza pediu para trocar ou apagar o banco
+      resolve(req.result);
+    };
+    req.onerror = () => { connection = null; reject(req.error); };
   });
+  return connection;
 }
 
 async function readBytes(): Promise<Uint8Array | null> {

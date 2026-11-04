@@ -170,8 +170,8 @@ export function form(fields, submitLabel, onSubmit) {
     let input;
     if (fd.type === 'select') {
       input = h('select', { name: fd.name }, h('option', { value: '' }, fd.placeholder ?? 'Escolha…'), (fd.options ?? []).map(([v, l]) => h('option', { value: v }, l)));
-    } else if (fd.type === 'textarea') input = h('textarea', { name: fd.name, rows: 3 });
-    else input = h('input', { name: fd.name, type: fd.type ?? 'text', inputmode: fd.inputmode, autocomplete: 'off' });
+    } else if (fd.type === 'textarea') input = h('textarea', { name: fd.name, rows: 3, maxlength: 2000 });
+    else input = h('input', { name: fd.name, type: fd.type ?? 'text', inputmode: fd.inputmode, autocomplete: 'off', maxlength: (fd.type ?? 'text') === 'text' ? 120 : undefined });
     f.append(h('label', { class: fd.type === 'checkbox' ? 'check' : '' }, fd.type === 'checkbox' ? [input, fd.label] : [fd.label, fd.hint ? h('span', { class: 'muted' }, ` (${fd.hint})`) : '', input]));
   }
   f.append(h('button', { class: 'btn primary', type: 'submit' }, submitLabel));

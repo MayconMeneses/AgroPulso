@@ -1,6 +1,7 @@
 import type { Database } from '../storage/database.ts';
 import { recordEvent } from './audit.ts';
 import { DomainError } from './errors.ts';
+import { assertNameLength } from './guards.ts';
 
 export interface CropType {
   id: string;
@@ -10,6 +11,7 @@ export interface CropType {
 // RN-AG-019 / RF-AG-013: cultura é dado do usuário. Nenhuma cultura vem pré-cadastrada.
 export async function createCropType(db: Database, input: { name: string }): Promise<CropType> {
   const name = input.name.trim();
+  assertNameLength(name);
   if (name === '') throw new DomainError('invalido', 'Informe o nome da cultura');
   const crop: CropType = { id: crypto.randomUUID(), name };
   await db.transaction(async () => {

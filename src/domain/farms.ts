@@ -1,6 +1,7 @@
 import type { Database } from '../storage/database.ts';
 import { recordEvent } from './audit.ts';
 import { DomainError } from './errors.ts';
+import { assertNameLength } from './guards.ts';
 
 export interface Farm {
   id: string;
@@ -21,6 +22,7 @@ export function assertTimezone(timezone: string): void {
 // RF-AG-002: propriedade sem mapa e sem área.
 export async function createFarm(db: Database, input: { name: string; timezone: string }): Promise<Farm> {
   const name = input.name.trim();
+  assertNameLength(name);
   if (name === '') throw new DomainError('invalido', 'Informe o nome da propriedade');
   assertTimezone(input.timezone);
   const farm: Farm = { id: crypto.randomUUID(), name, timezone: input.timezone, version: 1 };

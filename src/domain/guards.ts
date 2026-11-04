@@ -26,3 +26,9 @@ export function assertDateText(value: string, label: string): void {
   const ok = /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === value;
   if (!ok) throw new DomainError('invalido', `${label}: use uma data válida no formato AAAA-MM-DD`);
 }
+
+// Nomes (propriedade, cultura, pessoa, item...) são curtos. Sem teto, um texto enorme estoura a tela e o banco.
+export const MAX_NAME = 80;
+export function assertNameLength(name: string): void {
+  if (name.length > MAX_NAME) throw new DomainError('invalido', `O nome pode ter no máximo ${MAX_NAME} caracteres`);
+}

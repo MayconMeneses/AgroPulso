@@ -3,7 +3,7 @@ import { recordEvent } from './audit.ts';
 import { MICRO } from './decimal.ts';
 import { DomainError } from './errors.ts';
 import { getEntry, recordEntryTx, voidEntryTx } from './financial.ts';
-import { assertCycleWritable, assertDateText, findByKey } from './guards.ts';
+import { assertCycleWritable, assertDateText, findByKey, assertNameLength } from './guards.ts';
 
 export type WorkerKind = 'CONTRATADO' | 'FAMILIAR';
 export type PayType = 'DIARIA' | 'MENSAL';
@@ -48,6 +48,7 @@ const MAX_DAYS_MICRO = 31 * MICRO;
 // Pessoa da família: o valor é opcional; sem ele, o trabalho fica anotado, mas sem valor (nunca se inventa um).
 export async function createWorker(db: Database, input: { farmId: string; name: string; kind: WorkerKind; payType: PayType; rateCents?: number }): Promise<Worker> {
   const name = input.name.trim();
+  assertNameLength(name);
   if (name === '') throw new DomainError('invalido', 'Informe o nome da pessoa');
   if (input.kind !== 'CONTRATADO' && input.kind !== 'FAMILIAR') throw new DomainError('invalido', 'Escolha se é funcionário contratado ou da família');
   if (input.payType !== 'DIARIA' && input.payType !== 'MENSAL') throw new DomainError('invalido', 'Escolha o pagamento: diária ou mensal');

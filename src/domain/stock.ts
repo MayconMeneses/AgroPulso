@@ -1,7 +1,7 @@
 import type { Database } from '../storage/database.ts';
 import { recordEvent } from './audit.ts';
 import { DomainError } from './errors.ts';
-import { assertCycleWritable, assertDateText, findByKey } from './guards.ts';
+import { assertCycleWritable, assertDateText, findByKey, assertNameLength } from './guards.ts';
 
 export interface StockItem {
   id: string;
@@ -28,6 +28,7 @@ export interface StockMovement {
 // movimentos: não há saldo gravado que possa sair de acordo. Nada vem cadastrado e não há conversão automática.
 export async function createStockItem(db: Database, input: { farmId: string; name: string; unitId: string; minMicro?: number }): Promise<StockItem> {
   const name = input.name.trim();
+  assertNameLength(name);
   if (name === '') throw new DomainError('invalido', 'Informe o nome do item');
   if (input.minMicro !== undefined && (!Number.isSafeInteger(input.minMicro) || input.minMicro < 0)) throw new DomainError('invalido', 'O estoque mínimo não pode ser negativo');
   const id = crypto.randomUUID();
