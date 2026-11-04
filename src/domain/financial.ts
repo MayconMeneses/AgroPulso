@@ -82,19 +82,20 @@ export async function listEntries(db: Database, farmId: string): Promise<Financi
 export interface EntryRow extends FinancialEntry {
   voidedAt: string | null;
   voidReason: string | null;
+  workId: string | null; // preenchido quando a despesa nasceu de um dia de trabalho (anula-se pelo trabalho)
 }
 
 // Para a tela de lançamentos de uma safra: mostra também os anulados, riscados, para o histórico ficar visível.
 export async function listCycleEntries(db: Database, cycleId: string): Promise<EntryRow[]> {
-  const rows = await db.all(`select ${COLS}, voided_at, void_reason from financial_entry where cycle_id = ? order by occurred_on, id`, [cycleId]);
-  return rows.map((r) => ({ ...toEntry(r), voidedAt: str(r.voided_at), voidReason: str(r.void_reason) }));
+  const rows = await db.all(`select ${COLS}, voided_at, void_reason, (select w.id from work_entry w where w.financial_entry_id = financial_entry.id) as work_id from financial_entry where cycle_id = ? order by occurred_on, id`, [cycleId]);
+  return rows.map((r) => ({ ...toEntry(r), voidedAt: str(r.voided_at), voidReason: str(r.void_reason), workId: str(r.work_id) }));
 }
 
 // "Apagar" um lançamento é anular: ele sai das contas, dos painéis e dos relatórios, mas continua gravado com o motivo,
 // a data e quem era o valor, para o histórico não se perder (RN-AG-003). Não há como desfazer pela tela; lança-se de novo.
-export async function voidEntry(db: Database, id: string, version: number, reason: string): Promise<void> {
+export async function voidEntryTx(db: Database, id: string, version: number, reason: string): Promise<void> {
   if (reason.trim() === '') throw new DomainError('invalido', 'Informe o motivo de anular o lançamento');
-  await db.transaction(async () => {
+  {
     const cur = await getEntry(db, id);
     if (!cur) throw new DomainError('nao_encontrado', 'Lançamento não encontrado');
     if ((await db.all('select 1 as ok from financial_entry where id = ? and voided_at is not null', [id])).length > 0) throw new DomainError('transicao_invalida', 'Este lançamento já foi anulado');
@@ -102,12 +103,19 @@ export async function voidEntry(db: Database, id: string, version: number, reaso
     if (cur.cycleId) await assertCycleWritable(db, cur.cycleId, reason);
     await db.run('update financial_entry set voided_at = ?, void_reason = ?, version = version + 1 where id = ? and version = ?', [new Date().toISOString(), reason.trim(), id, version]);
     await recordEvent(db, { type: 'expense.voided', resource: 'financial_entry', resourceId: id, reason: reason.trim(), before: { amountCents: cur.amountCents, kind: cur.kind, occurredOn: cur.occurredOn } });
+  }
+}
+
+export async function voidEntry(db: Database, id: string, version: number, reason: string): Promise<void> {
+  await db.transaction(async () => {
+    if ((await db.all('select 1 as ok from work_entry where financial_entry_id = ?', [id])).length > 0) throw new DomainError('transicao_invalida', 'Esta despesa veio de um dia de trabalho. Anule o trabalho, e a despesa sai junto');
+    await voidEntryTx(db, id, version, reason);
   });
 }
 
 // RF-AG-005 / RF-AG-008: valor exato em centavos. Sem safra, o custo fica "não alocado" e não entra no resultado da safra.
 // Custo (occurredOn) e pagamento (paidOn) são datas distintas (RN-AG-001).
-export async function recordEntry(
+export async function recordEntryTx(
   db: Database,
   input: {
     farmId: string;
@@ -133,7 +141,7 @@ export async function recordEntry(
   if (input.author.trim() === '') throw new DomainError('invalido', 'Informe quem registrou');
   if (input.familyLabor && input.kind !== 'DESPESA') throw new DomainError('invalido', 'Mão de obra familiar só vale em despesa');
   const id = crypto.randomUUID();
-  return db.transaction(async () => {
+  {
     const dup = await findByKey(db, 'financial_entry', input.idempotencyKey);
     if (dup) return (await getEntry(db, dup)) as FinancialEntry;
     if ((await db.all('select 1 as ok from farm where id = ?', [input.farmId])).length === 0) throw new DomainError('invalido', 'Propriedade inválida');
@@ -172,7 +180,11 @@ export async function recordEntry(
       after: { kind: input.kind, amountCents: input.amountCents, cycleId: input.cycleId ?? null, occurredOn: input.occurredOn },
     });
     return (await getEntry(db, id)) as FinancialEntry;
-  });
+  }
+}
+
+export async function recordEntry(db: Database, input: Parameters<typeof recordEntryTx>[1]): Promise<FinancialEntry> {
+  return db.transaction(() => recordEntryTx(db, input));
 }
 
 // RN-AG-003: ajuste só por evento e com justificativa; o valor anterior fica no histórico.

@@ -34,6 +34,8 @@ test('migra um banco vazio até a última versão', async () => {
     'stock_movement',
     'unit',
     'unit_conversion',
+    'work_entry',
+    'worker',
   ]);
 });
 

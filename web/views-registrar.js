@@ -2,6 +2,7 @@ import { listActivityTypes, recordActivity } from './app/domain/activities.js';
 import { addAttachment } from './app/domain/attachments.js';
 import { formatMoney, parseMoney, parseQuantity } from './app/domain/decimal.js';
 import { listCostCategories, recordEntry } from './app/domain/financial.js';
+import { listWorkers, recordWork } from './app/domain/labor.js';
 import { listHarvests, listSales, recordHarvest, recordReceipt, recordSale } from './app/domain/production.js';
 import { listUnits } from './app/domain/units.js';
 import { chip, form, h, icon, openSheet, say } from './ui.js';
@@ -10,6 +11,7 @@ let selected = '';
 
 const ACTIONS = [
   ['activity', 'atividade', 'Atividade de campo'],
+  ['work', 'trabalho', 'Dia de trabalho'],
   ['expense', 'despesa', 'Despesa'],
   ['income', 'entrada', 'Entrada de caixa'],
   ['harvest', 'colheita', 'Colheita'],
@@ -49,6 +51,19 @@ export async function registrar(db, rerender, author) {
             if (v.photo) await addAttachment(db, { activityId: a.id, name: v.photo.name, bytes: new Uint8Array(await v.photo.arrayBuffer()) });
             await ok(a.notice ? `Atividade salva. ${a.notice}` : 'Atividade salva.');
           }));
+        } else if (kind === 'work') {
+          const people = await listWorkers(db, String(cycle.farm_id));
+          box.append(people.length === 0 ? h('p', { class: 'callout' }, 'Cadastre antes a pessoa em "Cadastros", em "Pessoas".') : h('div', {}, h('p', { class: 'muted small' }, 'O app calcula o custo pela diária ou pelo salário cadastrado e lança a despesa de mão de obra. Pessoa da família entra na linha separada, fora do custo.'), form([
+            { name: 'who', label: 'Pessoa', type: 'select', options: people.map((p) => [p.id, `${p.name} (${p.payType === 'DIARIA' ? 'diária' : 'mensal'})`]) },
+            { name: 'date', label: 'Data', type: 'date' },
+            { name: 'days', label: 'Dias trabalhados (para diária)', hint: 'ex.: 1 ou 0,5', inputmode: 'decimal' },
+            { name: 'pct', label: '% do salário do mês nesta safra (para mensal)', hint: '1 a 100', inputmode: 'numeric' },
+            { name: 'note', label: 'Observação', hint: 'opcional' },
+          ], 'Salvar trabalho', async (v) => {
+            const person = people.find((p) => p.id === v.who);
+            const r = await recordWork(db, { workerId: v.who, cycleId, occurredOn: v.date, daysMicro: person?.payType === 'DIARIA' ? parseQuantity(v.days, 'Dias') : undefined, sharePercent: person?.payType === 'MENSAL' ? Number(v.pct.trim()) : undefined, note: v.note, author, idempotencyKey: key });
+            await ok(r.warning ? `Trabalho salvo. Atenção: ${r.warning}` : `Trabalho salvo${r.amountCents === null ? '' : `: ${formatMoney(r.amountCents)}`}.`);
+          })));
         } else if (kind === 'expense' || kind === 'income') {
           const cats = (await listCostCategories(db)).map((c) => [c.id, c.name]);
           const expense = kind === 'expense';

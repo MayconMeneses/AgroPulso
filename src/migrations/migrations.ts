@@ -228,4 +228,38 @@ export const migrations: Migration[] = [
       alter table plot add column outline_json text;
     `,
   },
+  {
+    version: 9,
+    name: 'mao_de_obra',
+    sql: `
+      create table worker (
+        id text primary key,
+        farm_id text not null references farm(id),
+        name text not null check (length(trim(name)) > 0),
+        kind text not null check (kind in ('CONTRATADO','FAMILIAR')),
+        pay_type text not null check (pay_type in ('DIARIA','MENSAL')),
+        rate_cents integer check (rate_cents > 0),
+        created_at text not null
+      ) strict;
+      create index worker_farm on worker (farm_id);
+      create table work_entry (
+        id text primary key,
+        worker_id text not null references worker(id),
+        cycle_id text not null references crop_cycle(id),
+        occurred_on text not null,
+        days_micro integer check (days_micro > 0),
+        share_percent integer check (share_percent between 1 and 100),
+        amount_cents integer check (amount_cents > 0),
+        financial_entry_id text references financial_entry(id),
+        note text,
+        author text not null check (length(trim(author)) > 0),
+        idempotency_key text unique,
+        voided_at text,
+        void_reason text,
+        created_at text not null
+      ) strict;
+      create index work_entry_cycle on work_entry (cycle_id, occurred_on);
+      create index work_entry_worker on work_entry (worker_id, occurred_on);
+    `,
+  },
 ];
