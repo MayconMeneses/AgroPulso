@@ -40,7 +40,8 @@ function toCycle(r: Record<string, unknown>): Cycle {
 
 // Data de calendário AAAA-MM-DD, sem hora e sem fuso. Não corrige nada em silêncio (RN-AG-013).
 function assertDate(value: string, label: string): void {
-  const ok = /^\d{4}-\d{2}-\d{2}$/.test(value) && new Date(`${value}T00:00:00Z`).toISOString().slice(0, 10) === value;
+  const d = new Date(`${value}T00:00:00Z`);
+  const ok = /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === value;
   if (!ok) throw new DomainError('invalido', `${label}: use uma data válida no formato AAAA-MM-DD`);
 }
 

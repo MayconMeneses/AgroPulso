@@ -1,8 +1,9 @@
 import { createActivityType, listActivityTypes } from './app/domain/activities.js';
 import { createCropType, listCropTypes } from './app/domain/crop-types.js';
-import { parseQuantity } from './app/domain/decimal.js';
+import { parseMoney, parseQuantity } from './app/domain/decimal.js';
 import { createFarm, listFarms } from './app/domain/farms.js';
 import { createCostCategory, listCostCategories } from './app/domain/financial.js';
+import { createWorker, listWorkers } from './app/domain/labor.js';
 import { createPlot, listPlots } from './app/domain/plots.js';
 import { createUnit, listUnits, setConversion } from './app/domain/units.js';
 import { localBlock } from './views-local.js';
@@ -16,6 +17,8 @@ export async function cadastros(db, rerender) {
   const [farms, crops, units, actTypes, cats] = await Promise.all([listFarms(db), listCropTypes(db), listUnits(db), listActivityTypes(db), listCostCategories(db)]);
   const plots = [];
   for (const f of farms) for (const p of await listPlots(db, f.id)) plots.push({ ...p, label: `${p.name} (${f.name})` });
+  const workers = [];
+  for (const f of farms) for (const w of await listWorkers(db, f.id)) workers.push(w);
   const areaUnits = units.filter((u) => u.kind === 'area');
   const add = (title, build) => () => openSheet(title, (close) => build(async (msg) => { close(); say(msg); await rerender(); }));
   const opts = (list) => list.map((x) => [x.id, x.name]);
@@ -37,6 +40,16 @@ export async function cadastros(db, rerender) {
       { name: 'crop', label: 'Só para a cultura', type: 'select', options: opts(crops), placeholder: 'Todas (ex.: medidas de área)' },
       { name: 'source', label: 'Origem do fator', hint: 'ex.: costume da região' },
     ], 'Salvar fator', async (v) => { await setConversion(db, { fromUnitId: v.from, toUnitId: v.to, factorMicro: parseQuantity(v.factor, 'Fator'), source: v.source, cropTypeId: v.crop || null }); await ok('Fator salvo.'); })))],
+    ['pessoa', 'Pessoas (funcionários e família)', workers.map((w) => `${w.name} · ${w.kind === 'CONTRATADO' ? 'contratado' : 'família'} · ${w.payType === 'DIARIA' ? 'diária' : 'mensal'}`), add('Nova pessoa', (ok) => form([
+      { name: 'farm', label: 'Propriedade', type: 'select', options: opts(farms) },
+      { name: 'name', label: 'Nome' },
+      { name: 'kind', label: 'Tipo', type: 'select', options: [['CONTRATADO', 'Funcionário contratado'], ['FAMILIAR', 'Da família']] },
+      { name: 'pay', label: 'Pagamento', type: 'select', options: [['DIARIA', 'Diária'], ['MENSAL', 'Mensal']] },
+      { name: 'rate', label: 'Valor da diária ou do salário do mês, em reais', hint: 'obrigatório para contratado; opcional para família', inputmode: 'decimal' },
+    ], 'Salvar pessoa', async (v) => {
+      await createWorker(db, { farmId: v.farm, name: v.name, kind: v.kind, payType: v.pay, rateCents: v.rate.trim() ? parseMoney(v.rate, 'Valor') : undefined });
+      await ok('Pessoa salva.');
+    }))],
     ['talhao', 'Talhão (opcional)', plots.map((x) => x.label), add('Novo talhão', (ok) => form([
       { name: 'farm', label: 'Propriedade', type: 'select', options: opts(farms) },
       { name: 'name', label: 'Nome do talhão' },

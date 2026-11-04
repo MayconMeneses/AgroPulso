@@ -14,13 +14,15 @@ export async function assertCycleWritable(db: Database, cycleId: string, justifi
 }
 
 // RN-AG-006: a mesma ação reenviada com a mesma chave não duplica o registro.
-export async function findByKey(db: Database, table: 'field_activity' | 'financial_entry' | 'harvest_entry' | 'sale' | 'stock_movement', key: string | undefined): Promise<string | null> {
+export async function findByKey(db: Database, table: 'field_activity' | 'financial_entry' | 'harvest_entry' | 'sale' | 'stock_movement' | 'work_entry', key: string | undefined): Promise<string | null> {
   if (!key) return null;
   const rows = await db.all(`select id from ${table} where idempotency_key = ?`, [key]);
   return rows[0] ? String(rows[0].id) : null;
 }
 
 export function assertDateText(value: string, label: string): void {
-  const ok = /^\d{4}-\d{2}-\d{2}$/.test(value) && new Date(`${value}T00:00:00Z`).toISOString().slice(0, 10) === value;
+  // Data impossível (mês 13, dia 40) faz Date ficar inválida e toISOString lançar RangeError: tratar antes, para virar mensagem em português.
+  const d = new Date(`${value}T00:00:00Z`);
+  const ok = /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === value;
   if (!ok) throw new DomainError('invalido', `${label}: use uma data válida no formato AAAA-MM-DD`);
 }

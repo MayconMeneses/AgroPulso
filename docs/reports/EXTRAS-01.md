@@ -54,3 +54,13 @@ Com internet e sem local salvo, o app pede a localização do aparelho (uma vez 
 Total: 87 testes. Não existe "desfazer anulação" nem "desfazer remoção de anexo" pela tela.
 
 **Aviso de versão nova para quem instalou antes:** não há o que fazer no código. A instalação antiga troca de versão uma vez, sem aviso, na próxima abertura; as seguintes já avisam. Como o app ainda não foi publicado, a única instalação antiga é a do computador de desenvolvimento.
+
+## Rodada 3 (2026-11-03): funcionários, diária e mensal
+- **Cadastro de pessoas** (Cadastros): funcionário contratado ou da família, pagamento por **diária** ou **mensal** e o valor (obrigatório para contratado; opcional para família).
+- **Dia de trabalho** (Registrar): diária = dias trabalhados (aceita 0,5, até 31); mensal = que % do salário do mês vai para a safra (1 a 100; o mês de uma pessoa não passa de 100 % somando as safras). O app calcula o custo e lança a despesa de mão de obra na hora, na mesma gravação.
+- **Contratado** entra no custo registrado e no resultado. **Família** entra na linha separada "mão de obra familiar", fora do custo e do resultado (RN-AG-020), com a etiqueta "Estimado". Família sem valor cadastrado: o trabalho é anotado sem valor, com aviso; nenhum número é inventado.
+- Anular o trabalho anula a despesa dele, com o motivo; a despesa gerada por trabalho não se anula sozinha. A safra encerrada pede justificativa, como nas demais.
+- Resumo por pessoa e lista na tela "Lançamentos" da safra.
+- Defeito achado pelos testes e corrigido: datas impossíveis (mês 13, dia 40) causavam erro interno em vez de mensagem em português (`guards.ts` e `cycles.ts`).
+- 97 testes (eram 87). Conferido no navegador: contratado por diária (2,5 dias x R$ 150 = R$ 375 no custo) e família mensal (50 % de R$ 1.800 = R$ 900 na linha separada).
+- Não feito: relatório PDF/CSV por pessoa (o CSV já traz a despesa com o nome na coluna de quem recebeu); salário proporcional por dias do mês; 13º, férias e encargos (o app registra o que você declara, não faz folha de pagamento).
