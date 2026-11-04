@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/brand/AgroPulso-logo-com-texto.png" alt="AgroPulso" width="480"></p>
+
 # AgroPulso
 
 Caderno de campo digital para produtores rurais do Brasil, com foco no Nordeste. Funciona sem internet, com os dados no aparelho de quem usa. **Em desenvolvimento: ainda não foi usado por nenhum produtor real.**
