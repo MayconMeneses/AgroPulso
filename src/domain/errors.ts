@@ -3,7 +3,8 @@ export type DomainErrorCode =
   | 'nao_encontrado'
   | 'conflito_de_versao'
   | 'transicao_invalida'
-  | 'duplicado';
+  | 'duplicado'
+  | 'somente_leitura';
 
 export class DomainError extends Error {
   code: DomainErrorCode;
