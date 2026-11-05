@@ -7,3 +7,8 @@ node_modules/
 dist/
 
 .claude/
+
+# Licenças: a chave privada de assinatura e a lista de licenças emitidas nunca vão para o repositório
+*.pem
+licencas/
+chave-privada*

@@ -18,6 +18,7 @@ Regra geral (§30): para decisão técnica reversível, usar a alternativa menos
 | ADR-011 | Aplicativo que funciona 100% sem rede e sem servidor próprio, com dados em armazenamento local. Entrega como PWA instalável (Android, iOS, Windows), com os arquivos do app servidos por hospedagem estática gratuita; sem backend (decisão do dono, 2026-11-03; serviço e instalação no iOS a verificar, DP-011) | O "offline na V2" do §14 sobe para V1 porque o app é local; dado financeiro nunca sai do aparelho sem ação explícita de exportar | — | §14, DP-011 | PROPOSTA (reescrita; forma de entrega decidida, verificação pendente) |
 | ADR-012 | Mapas: MapLibre GL JS, sem depender de tiles públicos do OSM; modo sem mapa-base | Licença do provedor a verificar | Sem mapa no MVP | §10 | ADIADA |
 | ADR-013 | Testes: Vitest e Playwright | Padrão sugerido | — | §15, §24 | PROPOSTA |
+| ADR-014 | Venda por licença assinada (ECDSA P-256) conferida no aparelho, dados locais, somente leitura ao vencer; publicação por etiqueta. Ver `ADR-014-LICENCIAMENTO.md` | Dono pediu o modelo A em 2026-11-05; repositório público torna a trava de cortesia | Modelo B (conta e nuvem) | pedido do dono | DECIDIDA (implementação pendente) |
 
 ## Limites de domínio (§15)
 identity/tenancy, farms, plots, crop-cycles, field-activities, cost-ledger, harvest, sales, documents, reports, audit, platform-admin.
