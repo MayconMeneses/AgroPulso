@@ -1,5 +1,6 @@
 import { formatCoordinate, getFarmLocation, onlineFeaturesEnabled, parseCoordinate, setFarmLocation, setOnlineFeatures } from './app/domain/location.js';
 import { parseForecast, weatherUrl } from './app/domain/online.js';
+import { unguarded } from './app/domain/readonly-guard.js';
 import { listPlots } from './app/domain/plots.js';
 import { chip, form, h, icon, openSheet, say, tag } from './ui.js';
 import { buildMap, desenharTalhao } from './views-talhao.js';
@@ -47,7 +48,8 @@ export async function localBlock(db, farms, rerender) {
   const loc = await getFarmLocation(db, farm.id);
   const plots = await listPlots(db, farm.id);
   const online = await onlineFeaturesEnabled(db);
-  const toggle = async (on) => { await setOnlineFeatures(db, on); say(on ? 'Tempo e mapa ligados.' : 'Tempo e mapa desligados. O app não faz mais nenhum pedido pela internet para isso.'); await rerender(); };
+  // Controle de privacidade: usa o banco sem trava, para continuar liberado mesmo com a licença vencida.
+  const toggle = async (on) => { await setOnlineFeatures(unguarded(db), on); say(on ? 'Tempo e mapa ligados.' : 'Tempo e mapa desligados. O app não faz mais nenhum pedido pela internet para isso.'); await rerender(); };
   const body = h('div', { class: 'local-body' });
   const info = h('p', { class: 'muted small' });
 

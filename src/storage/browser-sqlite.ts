@@ -1,4 +1,5 @@
 import type { Database, Row, SqlValue } from './database.ts';
+import type { KeyValueStore } from './key-value.ts';
 import { createSaver } from './saver.ts';
 
 // Adaptador para o navegador: SQLite compilado para WebAssembly (sql.js) com os bytes do banco guardados no
@@ -57,6 +58,30 @@ async function writeBytes(bytes: Uint8Array): Promise<void> {
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });
+}
+
+// Mesma gaveta do IndexedDB que guarda os bytes do banco, com outras chaves. Quem limpa os dados do site apaga as duas
+// coisas juntas (não dá para zerar só a licença ou o relógio). Nada disto entra na exportação, que lê só as tabelas do SQLite.
+export function browserKeyValueStore(): KeyValueStore {
+  return {
+    async get(key) {
+      const db = await idb();
+      return new Promise((resolve, reject) => {
+        const req = db.transaction(IDB_STORE).objectStore(IDB_STORE).get(`kv:${key}`);
+        req.onsuccess = () => resolve(typeof req.result === 'string' ? req.result : null);
+        req.onerror = () => reject(req.error);
+      });
+    },
+    async set(key, value) {
+      const db = await idb();
+      await new Promise<void>((resolve, reject) => {
+        const tx = db.transaction(IDB_STORE, 'readwrite');
+        tx.objectStore(IDB_STORE).put(value, `kv:${key}`);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    },
+  };
 }
 
 export async function openBrowserSqlite(SQL: SqlJsStatic): Promise<Database> {

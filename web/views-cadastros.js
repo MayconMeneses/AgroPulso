@@ -7,6 +7,7 @@ import { createWorker, listWorkers } from './app/domain/labor.js';
 import { createPlot, listPlots } from './app/domain/plots.js';
 import { createUnit, listUnits, setConversion } from './app/domain/units.js';
 import { FUSOS } from './views-guia.js';
+import { licencaBlock } from './licenca.js';
 import { localBlock } from './views-local.js';
 import { form, h, icon, openSheet, say } from './ui.js';
 
@@ -67,7 +68,7 @@ export async function cadastros(db, rerender) {
   ];
 
   const local = await localBlock(db, farms, rerender);
-  return [local, h('div', { class: 'cad-grid' }, blocks.map(([ic, title, names, open], i) => h('section', { class: `panel ${i % 2 ? 'alt' : ''}`.trim() },
+  return [licencaBlock(rerender), local, h('div', { class: 'cad-grid' }, blocks.map(([ic, title, names, open], i) => h('section', { class: `panel ${i % 2 ? 'alt' : ''}`.trim() },
     h('div', { class: 'cad-head' }, icon(ic), h('h2', {}, title)),
     names.length ? h('div', { class: 'names' }, names.map((n) => h('span', {}, n))) : h('p', { class: 'muted small' }, 'Nenhum ainda.'),
     h('button', { class: 'btn', type: 'button', onclick: open }, icon('registrar'), 'Adicionar'))))];

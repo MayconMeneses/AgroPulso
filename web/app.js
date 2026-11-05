@@ -1,8 +1,10 @@
 import { addCommonActivityTypes } from './app/domain/activities.js';
 import { addCommonCategoriesAndUnits } from './app/domain/defaults.js';
+import { guardDatabase } from './app/domain/readonly-guard.js';
 import { migrations } from './app/migrations/migrations.js';
 import { migrate } from './app/migrations/runner.js';
 import { openBrowserSqlite } from './app/storage/browser-sqlite.js';
+import { activateFromLink, guardPolicy, licenseStrip, refreshLicense } from './licenca.js';
 import { cadastros } from './views-cadastros.js';
 import { estoque } from './views-estoque.js';
 import { painel } from './views-painel.js';
@@ -58,7 +60,8 @@ const VIEWS = { painel: (d, r) => painel(d, r, go), registrar: (d, r) => registr
 async function render() {
   drawNav();
   try {
-    main.replaceChildren(...(await VIEWS[tab](db, () => render())));
+    const strip = licenseStrip(go);
+    main.replaceChildren(...(strip ? [strip] : []), ...(await VIEWS[tab](db, () => render())));
   } catch (e) {
     fail(e);
   }
@@ -126,13 +129,19 @@ async function start() {
   }
   try {
     const SQL = await initSqlJs({ locateFile: (f) => `vendor/${f}` });
-    db = await openBrowserSqlite(SQL);
-    await migrate(db, migrations);
-    await addCommonActivityTypes(db);
-    await addCommonCategoriesAndUnits(db);
+    const raw = await openBrowserSqlite(SQL);
+    await migrate(raw, migrations); // a migração usa o banco sem trava: ela só roda ao abrir e nunca é bloqueada
+    await refreshLicense();
+    db = guardDatabase(raw, guardPolicy()); // daqui em diante toda gravação passa pela trava da licença
+    // Dados iniciais: com a licença vencida a gravação é recusada, e isso não pode derrubar a abertura do app.
+    const onlyReadOnly = (e) => { if (e?.code !== 'somente_leitura') throw e; };
+    await addCommonActivityTypes(db).catch(onlyReadOnly);
+    await addCommonCategoriesAndUnits(db).catch(onlyReadOnly);
     if (navigator.storage?.persist) navigator.storage.persist().catch(() => {});
+    const linked = await activateFromLink(); // link de ativação enviado pelo WhatsApp (#licenca=...)
     await askAuthor();
     await render();
+    if (linked) say(linked.ok ? 'Licença ativada. Obrigado!' : linked.message, linked.ok ? 'ok' : 'err');
     watchUpdates();
   } catch (e) {
     console.error(e);

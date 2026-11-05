@@ -1,5 +1,6 @@
 import { decryptBackup, encryptBackup, isEncryptedBackup, MIN_PASSPHRASE } from './app/backup/crypto.js';
 import { markBackupDone } from './app/domain/guide.js';
+import { unguarded } from './app/domain/readonly-guard.js';
 import { exportBackup } from './app/backup/export.js';
 import { importBackup, MAX_BACKUP_CHARS } from './app/backup/import.js';
 import { buildReport, toCsv } from './app/reports/csv.js';
@@ -59,7 +60,7 @@ export async function backup(db, rerender) {
       if (!v.pass) { say('Este backup tem senha. Digite a senha para restaurar.', 'err'); return; }
       text = await decryptBackup(text, v.pass);
     }
-    await importBackup(db, text);
+    await importBackup(unguarded(db), text); // restaurar continua possível com a licença vencida: são os dados do próprio cliente
     say('Backup restaurado.');
     await rerender();
   });
