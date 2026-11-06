@@ -29,3 +29,9 @@ test('HARD: o app procura versão nova assim que abre, e não só ao voltar de o
   const i = lines.findIndex((l) => l.startsWith('setInterval(check,'));
   assert.ok(i > 0 && lines[i + 1]?.startsWith('check();'), 'depois do setInterval deve haver uma chamada imediata de check()');
 });
+
+test('HARD: a barra lateral vazia (tela de boas-vindas) não deixa um quadro sobrando no computador', () => {
+  const css = readFileSync('web/styles.css', 'utf8');
+  assert.match(css, /\.dock:empty\s*\{\s*display:\s*none/);
+  assert.match(css, /\.shell:has\(> \.dock:empty\)\s*\{\s*grid-template-columns:\s*minmax\(0,\s*1fr\)/);
+});

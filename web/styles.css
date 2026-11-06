@@ -69,6 +69,10 @@ body {
   .dock button[aria-current="page"] { flex: 0 0 auto; }
   .dock .label, .dock button[aria-current="page"] .label { display: block; font-size: .68rem; letter-spacing: .02em; }
   .badge { display: inline-block; }
+  /* Na tela de boas-vindas a barra ainda está vazia: sem trilho, a página ocupa a largura toda. */
+  .dock:empty { display: none; }
+  .shell:has(> .dock:empty) { grid-template-columns: minmax(0, 1fr); }
+  .shell:has(> .dock:empty) .topbar, .shell:has(> .dock:empty) .content { grid-column: 1; }
 }
 
 /* Gaveta: sobe de baixo no celular, entra pela direita no computador. */
