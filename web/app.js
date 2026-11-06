@@ -117,6 +117,7 @@ function watchUpdates() {
     addEventListener('online', check);
     document.addEventListener('visibilitychange', () => { if (!document.hidden) check(); });
     setInterval(check, 60 * 60 * 1000);
+    check(); // ao abrir o app também: sem isto, o iPhone só procurava versão nova ao voltar de outro app
   }).catch((e) => console.warn('Sem modo offline:', e));
   // Só recarrega depois que a pessoa aceitou: a primeira instalação também troca o controlador e não deve recarregar.
   navigator.serviceWorker.addEventListener('controllerchange', () => { if (accepted) location.reload(); });

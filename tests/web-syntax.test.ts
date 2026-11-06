@@ -22,3 +22,10 @@ test('HARD: o pacote final (dist/app.js) montado pelo build tem sintaxe válida'
   const r = spawnSync(process.execPath, ['--check', 'dist/app.js'], { encoding: 'utf8' });
   assert.equal(r.status, 0, r.stderr);
 });
+
+test('HARD: o app procura versão nova assim que abre, e não só ao voltar de outro app', () => {
+  const app = readFileSync('web/app.js', 'utf8');
+  const lines = app.split(/\r?\n/).map((l) => l.trim());
+  const i = lines.findIndex((l) => l.startsWith('setInterval(check,'));
+  assert.ok(i > 0 && lines[i + 1]?.startsWith('check();'), 'depois do setInterval deve haver uma chamada imediata de check()');
+});
