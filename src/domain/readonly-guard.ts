@@ -14,6 +14,12 @@ export interface SqlClass {
 
 const CONTROL = new Set(['begin', 'commit', 'end', 'rollback', 'savepoint', 'release']);
 const READ_FIRST = new Set(['select', 'explain', 'values']);
+// PRAGMAs que só leem. Qualquer outra forma (inclusive `nome(valor)` e `nome = valor`) é gravação:
+// uma pragma desconhecida não pode ser provada inofensiva, então entra no lado seguro.
+const READ_PRAGMAS = new Set([
+  'table_info', 'table_xinfo', 'table_list', 'foreign_key_check', 'index_list', 'index_info', 'index_xinfo',
+  'database_list', 'compile_options', 'integrity_check', 'quick_check',
+]);
 
 // Tira comentários e textos entre aspas simples: o que está dentro deles nunca deve enganar a classificação.
 function strip(sql: string): string {
@@ -34,7 +40,8 @@ export function classifySql(sql: string): SqlClass {
     const first = (/^[a-z]+/i.exec(stmt)?.[0] ?? '').toLowerCase();
     if (CONTROL.has(first) || READ_FIRST.has(first)) continue;
     if (first === 'pragma') {
-      if (stmt.includes('=')) writes.push('?'); // pragma que muda configuração
+      const name = /^pragma\s+(?:[a-z_][a-z0-9_]*\.)?([a-z_][a-z0-9_]*)/i.exec(stmt)?.[1]?.toLowerCase();
+      if (!name || !READ_PRAGMAS.has(name)) writes.push('?');
       continue;
     }
     // Procura toda gravação dentro do comando (inclusive "with ... insert ..."), cada uma com a sua tabela.

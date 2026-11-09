@@ -14,7 +14,7 @@ import {
 import { addAttachment, listAttachments, readAttachment, sniffMime } from '../src/domain/attachments.ts';
 import { eventsFor } from '../src/domain/audit.ts';
 import { createCropType } from '../src/domain/crop-types.ts';
-import { cancelCycle, openCycle } from '../src/domain/cycles.ts';
+import { cancelCycle, closeCycle, openCycle, planCycle, startCycle } from '../src/domain/cycles.ts';
 import { DomainError } from '../src/domain/errors.ts';
 import { createFarm } from '../src/domain/farms.ts';
 import { freshDb } from './helpers.ts';
@@ -90,6 +90,24 @@ test('safra cancelada só aceita registro com justificativa, que fica no evento'
   await rejectsWith(recordActivity(db, input), 'transicao_invalida');
   const a = await recordActivity(db, { ...input, justification: 'lançamento esquecido' });
   assert.equal((await eventsFor(db, 'field_activity', a.id))[0]?.reason, 'lançamento esquecido');
+});
+
+test('safra encerrada preserva atividade e anexo: editar ou anexar falha, concluída ou cancelada', async () => {
+  for (const encerrada of ['CONCLUIDA', 'CANCELADA'] as const) {
+    const { db, cycle, capina } = await setup();
+    const a = await recordActivity(db, { cycleId: cycle.id, typeId: capina.id, occurredOn: '2026-12-10', author: 'M', state: 'PLANEJADA' });
+    let c = cycle;
+    if (encerrada === 'CONCLUIDA') {
+      c = await planCycle(db, c.id, c.version, { plannedStart: '2026-12-01', plannedEnd: '2027-03-01' });
+      c = await startCycle(db, c.id, c.version, { actualStart: '2026-12-05' });
+      c = await closeCycle(db, c.id, c.version, { reason: 'fim' });
+    } else {
+      c = await cancelCycle(db, c.id, c.version, { reason: 'seca' });
+    }
+    await rejectsWith(updateActivity(db, a.id, a.version, { notes: 'depois' }, 'M'), 'transicao_invalida');
+    await rejectsWith(addAttachment(db, { activityId: a.id, name: 'f.png', bytes: PNG }), 'transicao_invalida');
+    assert.equal((await getActivity(db, a.id))?.notes, null, encerrada);
+  }
 });
 
 test('anexo: tipo vem do conteúdo, tamanho limitado, nome saneado', async () => {

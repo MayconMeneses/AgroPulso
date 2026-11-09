@@ -89,6 +89,8 @@ export async function openBrowserSqlite(SQL: SqlJsStatic): Promise<Database> {
   let raw = new SQL.Database(saved ?? undefined);
   raw.run('pragma foreign_keys = on');
   let inTransaction = false;
+  // Últimos bytes gravados com sucesso: servem para desfazer o COMMIT se a gravação seguinte falhar.
+  let savedBytes: Uint8Array | null = saved;
 
   // Grava no IndexedDB depois de cada mudança concluída. export() do sql.js reinicia as pragmas da conexão,
   // então a chave estrangeira é religada logo depois.
@@ -96,6 +98,7 @@ export async function openBrowserSqlite(SQL: SqlJsStatic): Promise<Database> {
     const bytes = raw.export();
     raw.run('pragma foreign_keys = on');
     await writeBytes(bytes);
+    savedBytes = bytes;
   });
 
   const write = async (fn: () => void): Promise<void> => {
@@ -129,7 +132,16 @@ export async function openBrowserSqlite(SQL: SqlJsStatic): Promise<Database> {
         const result = await fn();
         raw.exec('COMMIT');
         inTransaction = false;
-        await persist();
+        try {
+          await persist();
+        } catch (error) {
+          // export() do sql.js recusa com transação aberta, então o COMMIT não pode vir depois da gravação. Se a
+          // gravação falhar, voltamos à última imagem durável para o chamador ver tudo desfeito, como o contrato promete.
+          raw.close();
+          raw = new SQL.Database(savedBytes ?? undefined);
+          raw.run('pragma foreign_keys = on');
+          throw error;
+        }
         return result;
       } catch (error) {
         if (inTransaction) raw.exec('ROLLBACK');
@@ -138,7 +150,7 @@ export async function openBrowserSqlite(SQL: SqlJsStatic): Promise<Database> {
       }
     },
     async close() {
-      await persist().catch(() => undefined); // espera a fila esvaziar
+      await persist(); // espera a fila esvaziar; falha de gravação vai para quem chamou
       raw.close();
       raw = undefined as never;
     },

@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import { exportBackup } from '../src/backup/export.ts';
 import { importBackup } from '../src/backup/import.ts';
 import { createCropType } from '../src/domain/crop-types.ts';
-import { getCycle, openCycle } from '../src/domain/cycles.ts';
+import { cancelCycle, closeCycle, getCycle, openCycle, planCycle, startCycle } from '../src/domain/cycles.ts';
 import { formatMoney, formatQuantity, parseMoney, parseQuantity } from '../src/domain/decimal.ts';
 import { DomainError } from '../src/domain/errors.ts';
 import { createFarm } from '../src/domain/farms.ts';
@@ -25,8 +25,18 @@ test('números: só vírgula decimal, sem corrigir em silêncio', () => {
   assert.throws(() => parseQuantity('0,1234567', 'q'), DomainError);
   assert.equal(formatMoney(123456), 'R$ 1.234,56');
   assert.equal(formatMoney(5), 'R$ 0,05');
+  assert.equal(formatMoney(-5), 'R$ -0,05');
+  assert.equal(formatMoney(-50), 'R$ -0,50');
+  assert.equal(formatMoney(-99), 'R$ -0,99');
+  assert.equal(formatMoney(-500_000), 'R$ -5.000,00');
+  assert.equal(formatMoney(-1_500_000), 'R$ -15.000,00');
   assert.equal(formatQuantity(12_500_000), '12,5');
   assert.equal(formatQuantity(1_000_000_000), '1.000');
+  assert.equal(formatQuantity(-5), '-0,000005');
+  assert.equal(formatQuantity(-50), '-0,00005');
+  assert.equal(formatQuantity(-99), '-0,000099');
+  assert.equal(formatQuantity(-500_000), '-0,5');
+  assert.equal(formatQuantity(-1_500_000), '-1,5');
 });
 
 test('nenhuma unidade vem pronta; "saca" e "caixa" não têm conversão global', async () => {
@@ -90,6 +100,25 @@ test('safra recebe o talhão depois, só da mesma propriedade, sem perder regist
   assert.equal(depois?.plotId, pa.id);
   assert.equal(depois?.version, c.version + 1);
   await rejectsWith(assignPlot(db, c.id, c.version, pa.id), 'conflito_de_versao');
+});
+
+test('safra encerrada não recebe talhão, concluída ou cancelada', async () => {
+  for (const encerrada of ['CONCLUIDA', 'CANCELADA'] as const) {
+    const db = await freshDb();
+    const farm = await createFarm(db, { name: 'Sítio', timezone: 'America/Recife' });
+    const crop = await createCropType(db, { name: 'Milho' });
+    let c = await openCycle(db, { farmId: farm.id, cropTypeId: crop.id });
+    const p = await createPlot(db, { farmId: farm.id, name: 'Talhão' });
+    if (encerrada === 'CONCLUIDA') {
+      c = await planCycle(db, c.id, c.version, { plannedStart: '2026-12-01', plannedEnd: '2027-03-01' });
+      c = await startCycle(db, c.id, c.version, { actualStart: '2026-12-05' });
+      c = await closeCycle(db, c.id, c.version, { reason: 'fim' });
+    } else {
+      c = await cancelCycle(db, c.id, c.version, { reason: 'seca' });
+    }
+    await rejectsWith(assignPlot(db, c.id, c.version, p.id), 'transicao_invalida');
+    assert.equal((await getCycle(db, c.id))?.plotId, null, encerrada);
+  }
 });
 
 test('backup preserva unidades, fatores e talhões', async () => {

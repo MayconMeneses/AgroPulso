@@ -98,6 +98,13 @@ export async function cycleResult(db: Database, cycleId: string): Promise<CycleR
     'select sum(r.amount_cents) as total from sale_receipt r join sale s on s.id = r.sale_id where s.cycle_id = ?',
     [cycleId],
   );
+  // A receber por venda: cada venda entra com o próprio saldo em aberto. Somar tudo e cortar em zero mascara
+  // uma venda em aberto quando outra recebeu mais do que valia.
+  const aReceberCents = await sumCents(
+    db,
+    'select sum(max(0, s.amount_cents - coalesce((select sum(r.amount_cents) from sale_receipt r where r.sale_id = s.id), 0))) as total from sale s where s.cycle_id = ?',
+    [cycleId],
+  );
   const naoAlocados = await sumCents(
     db,
     "select sum(amount_cents) as total from financial_entry where voided_at is null and farm_id = ? and cycle_id is null and kind = 'DESPESA' and family_labor = 0",
@@ -172,7 +179,7 @@ export async function cycleResult(db: Database, cycleId: string): Promise<CycleR
     entradasDeCaixaCents,
     receitaVendasCents,
     recebidoCents,
-    aReceberCents: Math.max(receitaVendasCents - recebidoCents, 0),
+    aReceberCents,
     colhido,
     vendido,
     produtividade,

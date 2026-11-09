@@ -6,6 +6,7 @@ import { exportBackup } from '../src/backup/export.ts';
 import { LICENSE_ENFORCED } from '../src/domain/license-config.ts';
 import { TRUSTED_PUBLIC_KEYS } from '../src/domain/license-keys.ts';
 import { activateLicense, loadLicense } from '../src/domain/license-state.ts';
+import { DomainError } from '../src/domain/errors.ts';
 import { base64urlEncode, TRIAL_DAYS } from '../src/domain/license.ts';
 import type { TrustedKeys } from '../src/domain/license.ts';
 import type { KeyValueStore } from '../src/storage/key-value.ts';
@@ -102,6 +103,18 @@ test('datas guardadas adulteradas não quebram: valem como se não existissem', 
   store.data.set('seen_on', '2026-99-99');
   const v = await loadLicense(store, trusted, '2026-12-01', true);
   assert.deepEqual([v.status.state, v.status.canWrite], ['teste', true]);
+});
+
+test('data guardada impossível no calendário vale como ausente; data inválida de hoje é recusada antes de gravar', async () => {
+  const store = new MemoryStore();
+  store.data.set('installed_on', '2026-02-30');
+  const v = await loadLicense(store, trusted, '2026-12-01', true);
+  assert.deepEqual([v.status.state, v.status.canWrite], ['teste', true]);
+  assert.equal(store.data.get('installed_on'), '2026-12-01');
+
+  const invalido = new MemoryStore();
+  await assert.rejects(loadLicense(invalido, trusted, '2026-02-30', true), (e: unknown) => e instanceof DomainError && e.code === 'invalido');
+  assert.equal(invalido.writes, 0, 'nada gravado com data inválida');
 });
 
 test('a licença e as datas NÃO entram na cópia de segurança e não ficam no banco', async () => {

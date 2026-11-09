@@ -166,17 +166,21 @@ export function say(message, kind = 'ok') {
 }
 
 // Mostra a mensagem em português dos erros do domínio; o resto vira uma frase genérica (o detalhe vai ao console).
-export function fail(error) {
-  if (error && (error.name === 'DomainError' || error.name === 'BackupError' || error.name === 'StorageError')) say(error.message, 'err');
-  else {
-    console.error(error);
-    say('Algo deu errado e nada foi salvo. Tente de novo.', 'err');
-  }
+// Com target, escreve no aviso de dentro do formulário/gaveta (o #status fica atrás do backdrop do <dialog>).
+export function fail(error, target) {
+  const box = target ?? document.getElementById('status');
+  const known = error && (error.name === 'DomainError' || error.name === 'BackupError' || error.name === 'StorageError');
+  if (!known) console.error(error);
+  box.textContent = known ? error.message : 'Algo deu errado e nada foi salvo. Tente de novo.';
+  if (target) { target.className = 'callout err'; target.hidden = false; }
+  else box.className = 'err';
 }
 
 // fields: { name, label, type: text|date|select|textarea|checkbox|file, options: [[valor, rótulo]], hint }
 export function form(fields, submitLabel, onSubmit) {
   const f = h('form', { novalidate: true });
+  const msg = h('p', { class: 'callout', role: 'alert', hidden: true });
+  const showError = (text) => { msg.textContent = text; msg.className = 'callout err'; msg.hidden = false; };
   for (const fd of fields) {
     let input;
     if (fd.type === 'select') {
@@ -187,19 +191,21 @@ export function form(fields, submitLabel, onSubmit) {
     else input = h('input', { name: fd.name, type: fd.type ?? 'text', inputmode: fd.inputmode, autocomplete: 'off', maxlength: (fd.type ?? 'text') === 'text' ? 120 : undefined });
     f.append(h('label', { class: fd.type === 'checkbox' ? 'check' : '' }, fd.type === 'checkbox' ? [input, fd.label] : [fd.label, fd.hint ? h('span', { class: 'muted' }, ` (${fd.hint})`) : '', input]));
   }
-  f.append(h('button', { class: 'btn primary', type: 'submit' }, submitLabel));
+  f.append(msg, h('button', { class: 'btn primary', type: 'submit' }, submitLabel));
   f.addEventListener('submit', async (ev) => {
     ev.preventDefault();
+    msg.hidden = true;
+    msg.textContent = '';
     const values = {};
     for (const fd of fields) {
       const el = f.elements[fd.name];
       values[fd.name] = fd.type === 'checkbox' ? el.checked : fd.type === 'file' ? el.files?.[0] ?? null : el.value;
     }
     try {
-      await onSubmit(values, f);
+      await onSubmit(values, f, showError);
       for (const fd of fields) if (fd.remember && values[fd.name]) prefSet(`ult_${fd.remember}`, String(values[fd.name]));
     } catch (e) {
-      fail(e);
+      fail(e, msg);
     }
   });
   return f;

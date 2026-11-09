@@ -96,6 +96,13 @@ test('AUD-03: arquivo gigante, base64 quebrado, chave __proto__ e anexo que ment
   assert.equal((await alvo.all('select count(*) as n from attachment'))[0]?.n, 1, 'o dado anterior ficou como estava');
 });
 
+test('AUD-10: o limite do arquivo de backup acomoda os anexos no teto em base64', async () => {
+  const { MAX_ATTACHMENTS_TOTAL_BYTES } = await import('../src/domain/attachments.ts');
+  const piorCaso = Math.ceil(MAX_ATTACHMENTS_TOTAL_BYTES / 3) * 4; // base64 ocupa 4/3 dos bytes
+  assert.ok(MAX_BACKUP_CHARS >= piorCaso + 8 * 1024 * 1024, 'o JSON em volta e os demais dados têm folga');
+  assert.ok(MAX_BACKUP_CHARS <= piorCaso + 32 * 1024 * 1024, 'a folga continua pequena');
+});
+
 test('AUD-04: contorno de talhão ilegível (backup mexido ou antigo) não derruba a lista nem entra no banco', async () => {
   const db = await currentDb();
   const farm = await createFarm(db, { name: 'Sítio', timezone: 'America/Recife' });

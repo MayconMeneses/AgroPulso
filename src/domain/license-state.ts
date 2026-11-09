@@ -1,5 +1,5 @@
 import type { KeyValueStore } from '../storage/key-value.ts';
-import { evaluateLicense, verifyLicense } from './license.ts';
+import { assertDay, evaluateLicense, isRealDate, verifyLicense } from './license.ts';
 import type { LicenseStatus, TrustedKeys, VerifyResult } from './license.ts';
 
 // Junta a conferência da chave (license.ts) com o que fica guardado no aparelho. Tudo vai para uma KeyValueStore separada
@@ -8,7 +8,6 @@ import type { LicenseStatus, TrustedKeys, VerifyResult } from './license.ts';
 const K_LICENSE = 'license';
 const K_INSTALLED = 'installed_on';
 const K_SEEN = 'seen_on';
-const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 export interface LicenseView {
   enforced: boolean; // false: o app não cobra nada (chave geral desligada)
@@ -17,7 +16,12 @@ export interface LicenseView {
 
 async function readDate(store: KeyValueStore, key: string): Promise<string | undefined> {
   const v = await store.get(key);
-  return v !== null && DATE.test(v) && !Number.isNaN(Date.parse(`${v}T00:00:00Z`)) ? v : undefined;
+  return v !== null && isRealDate(v) ? v : undefined;
+}
+
+async function writeDate(store: KeyValueStore, key: string, value: string, label: string): Promise<void> {
+  assertDay(value, label);
+  await store.set(key, value);
 }
 
 export async function readStoredLicense(store: KeyValueStore, trusted: TrustedKeys): Promise<VerifyResult | null> {
@@ -39,11 +43,11 @@ export async function loadLicense(store: KeyValueStore, trusted: TrustedKeys, to
   let installedOn = await readDate(store, K_INSTALLED);
   if (!installedOn) {
     installedOn = today; // primeira vez com a cobrança ligada: o teste começa agora
-    await store.set(K_INSTALLED, installedOn);
+    await writeDate(store, K_INSTALLED, installedOn, 'Data de hoje');
   }
   const latestSeenOn = await readDate(store, K_SEEN);
   const status = evaluateLicense({ license, installedOn, today, latestSeenOn });
-  if (status.seenOn !== latestSeenOn) await store.set(K_SEEN, status.seenOn);
+  if (status.seenOn !== latestSeenOn) await writeDate(store, K_SEEN, status.seenOn, 'Última data vista');
   return { enforced: true, status };
 }
 

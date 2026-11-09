@@ -1,6 +1,7 @@
 import type { Database } from '../storage/database.ts';
 import { recordEvent } from './audit.ts';
 import { DomainError } from './errors.ts';
+import { assertCycleWritable } from './guards.ts';
 
 export const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
 // O banco inteiro vive na memória do aparelho e é regravado a cada mudança: fotos demais deixam o app lento e podem estourar a
@@ -41,9 +42,9 @@ export async function addAttachment(db: Database, input: { activityId: string; n
   if (!mime) throw new DomainError('invalido', 'Tipo de arquivo não aceito. Use JPG, PNG, WebP ou PDF');
   const info: AttachmentInfo = { id: crypto.randomUUID(), activityId: input.activityId, name: safeName(input.name), mime, size: input.bytes.byteLength };
   await db.transaction(async () => {
-    if ((await db.all('select 1 as ok from field_activity where id = ?', [input.activityId])).length === 0) {
-      throw new DomainError('invalido', 'Atividade inválida');
-    }
+    const activity = (await db.all('select cycle_id from field_activity where id = ?', [input.activityId]))[0];
+    if (!activity) throw new DomainError('invalido', 'Atividade inválida');
+    await assertCycleWritable(db, String(activity.cycle_id));
     const used = Number((await db.all('select coalesce(sum(size), 0) as t from attachment'))[0]?.t ?? 0);
     if (used + input.bytes.byteLength > MAX_ATTACHMENTS_TOTAL_BYTES) throw new DomainError('invalido', 'O espaço de fotos deste aparelho chegou ao limite (120 MB). Remova anexos antigos antes de enviar outro');
     await db.run('insert into attachment (id, activity_id, name, mime, size, data, created_at) values (?, ?, ?, ?, ?, ?, ?)', [

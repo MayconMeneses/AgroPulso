@@ -112,6 +112,16 @@ test('venda parcial em datas diferentes; recebimento é outra coisa', async () =
   assert.equal(depois.receitaVendasCents, 146_000);
 });
 
+test('a receber por venda: recebimento maior numa venda não esconde a outra em aberto', async () => {
+  const s = await setup();
+  const v1 = await recordSale(s.db, { cycleId: s.cycle.id, soldOn: '2027-02-10', quantityMicro: 1_000_000, unitId: s.saca.id, amountCents: 10_000, author: 'M' });
+  await recordSale(s.db, { cycleId: s.cycle.id, soldOn: '2027-02-11', quantityMicro: 1_000_000, unitId: s.saca.id, amountCents: 10_000, author: 'M' });
+  await recordReceipt(s.db, { saleId: v1.id, receivedOn: '2027-02-15', amountCents: 15_000 });
+  const r = await cycleResult(s.db, s.cycle.id);
+  assert.equal(r.recebidoCents, 15_000);
+  assert.equal(r.aReceberCents, 10_000);
+});
+
 test('correção exige justificativa e deixa antes e depois', async () => {
   const s = await setup();
   const e = await recordEntry(s.db, despesa(s));

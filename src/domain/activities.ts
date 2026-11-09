@@ -148,6 +148,7 @@ export async function updateActivity(
     const cur = await getActivity(db, id);
     if (!cur) throw new DomainError('nao_encontrado', 'Atividade não encontrada');
     if (cur.version !== version) throw new DomainError('conflito_de_versao', 'Esta atividade foi alterada por outra ação. Recarregue e tente de novo');
+    await assertCycleWritable(db, cur.cycleId);
     if (change.state === 'REALIZADA' && cur.state === 'REALIZADA') throw new DomainError('transicao_invalida', 'A atividade já está realizada');
     const next = {
       occurredOn: change.occurredOn ?? cur.occurredOn,

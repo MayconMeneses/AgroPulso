@@ -12,7 +12,7 @@ export interface ReportFilters {
 // Planilhas abrem fórmulas que começam com = + - @. O texto do usuário é neutralizado com apóstrofo (injeção de fórmula).
 export function csvCell(value: string | number | null): string {
   let s = value === null ? '' : String(value);
-  if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
+  if (/^\s*[=+\-@]/.test(s)) s = `'${s}`;
   return /[";\n\r]/.test(s) ? `"${s.replaceAll('"', '""')}"` : s;
 }
 

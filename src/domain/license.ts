@@ -46,7 +46,7 @@ function base64urlDecode(text: string): Uint8Array | null {
   }
 }
 
-const isRealDate = (s: unknown): s is string => {
+export const isRealDate = (s: unknown): s is string => {
   if (typeof s !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
   const d = new Date(`${s}T00:00:00Z`);
   return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
@@ -134,7 +134,7 @@ export interface LicenseStatus {
 }
 
 const dayNumber = (d: string): number => Math.round(Date.parse(`${d}T00:00:00Z`) / 86_400_000);
-const assertDay = (d: string, label: string): void => {
+export const assertDay = (d: string, label: string): void => {
   if (!isRealDate(d)) throw new DomainError('invalido', `${label}: use uma data válida no formato AAAA-MM-DD`);
 };
 

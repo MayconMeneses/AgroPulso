@@ -8,6 +8,12 @@ import { buildLaborReport } from './app/reports/labor.js';
 import { toPdf } from './app/reports/pdf.js';
 import { download, emptyState, fail, form, h, icon, say } from './ui.js';
 
+// O perfil fica em app_meta e é a mesma fonte que app.js usa ao abrir o banco.
+async function readAuthor(db) {
+  const rows = await db.all("select value from app_meta where key = 'perfil'");
+  return rows[0] ? String(rows[0].value) : '';
+}
+
 export async function relatorio(db, rerender, go) {
   const cycles = await db.all('select c.id, t.name as crop, f.name as farm from crop_cycle c join crop_type t on t.id = c.crop_type_id join farm f on f.id = c.farm_id order by f.name, c.created_at');
   if (cycles.length === 0) return [emptyState('Ainda não há relatório', 'O relatório mostra o que você anotou em cada safra, em PDF ou planilha. Abra uma safra e anote algo primeiro.', [['Ver o passo a passo', () => go('painel'), true]])];
@@ -54,17 +60,34 @@ export async function backup(db, rerender) {
   ], 'Restaurar backup', async (v) => {
     if (!v.file) { say('Escolha o arquivo.', 'err'); return; }
     if (!v.sure) { say('Marque a confirmação para substituir os dados.', 'err'); return; }
-    if (v.file.size > MAX_BACKUP_CHARS) { say('O arquivo é grande demais para ser um backup do AgroPulso.', 'err'); return; }
     let text = await v.file.text();
     if (isEncryptedBackup(text)) {
       if (!v.pass) { say('Este backup tem senha. Digite a senha para restaurar.', 'err'); return; }
       text = await decryptBackup(text, v.pass);
     }
-    await importBackup(unguarded(db), text); // restaurar continua possível com a licença vencida: são os dados do próprio cliente
+    // Mede o texto depois de decifrar: o limite é de caracteres, e o tamanho do arquivo em bytes não é a mesma coisa.
+    if (text.length > MAX_BACKUP_CHARS) { say('O arquivo é grande demais para ser um backup do AgroPulso.', 'err'); return; }
+    const authorBefore = await readAuthor(db);
+    try {
+      download(`agropulso-antes-de-restaurar-${today()}.json`, new TextEncoder().encode(await exportBackup(db)), 'application/json');
+    } catch (e) {
+      console.error(e);
+      say('Não foi possível baixar a cópia dos dados atuais. A restauração não foi feita.', 'err');
+      return;
+    }
+    const raw = unguarded(db); // restaurar continua possível com a licença vencida: são os dados do próprio cliente
+    await importBackup(raw, text);
+    // O download acima disparou sem exceção; o navegador não confirma se o arquivo foi realmente salvo.
+    await markBackupDone(raw);
     say('Backup restaurado.');
+    if ((await readAuthor(raw)) !== authorBefore) {
+      // O nome atual vive no escopo de app.js. Recarregar reabre o banco pelo mesmo caminho e relê o perfil.
+      location.reload();
+      return;
+    }
     await rerender();
   });
-  const today = () => new Date().toISOString().slice(0, 10);
+  const today = () => new Date().toLocaleDateString('en-CA'); // AAAA-MM-DD no relógio do aparelho
   const protectedCopy = form([
     { name: 'pass', label: 'Senha', hint: `pelo menos ${MIN_PASSPHRASE} caracteres`, type: 'password' },
     { name: 'again', label: 'Repita a senha', type: 'password' },

@@ -1,6 +1,6 @@
 import { createActivityType, listActivityTypes } from './app/domain/activities.js';
 import { createCropType, listCropTypes } from './app/domain/crop-types.js';
-import { parseMoney, parseQuantity } from './app/domain/decimal.js';
+import { formatQuantity, parseMoney, parseQuantity } from './app/domain/decimal.js';
 import { createFarm, listFarms } from './app/domain/farms.js';
 import { createCostCategory, listCostCategories } from './app/domain/financial.js';
 import { createWorker, listWorkers } from './app/domain/labor.js';
@@ -14,12 +14,19 @@ import { form, h, icon, openSheet, say } from './ui.js';
 
 // Cadastros em blocos: cada bloco mostra o que já existe e abre uma gaveta para adicionar.
 export async function cadastros(db, rerender) {
-  const [farms, crops, units, actTypes, cats] = await Promise.all([listFarms(db), listCropTypes(db), listUnits(db), listActivityTypes(db), listCostCategories(db)]);
+  const [farms, crops, units, actTypes, cats, factors] = await Promise.all([listFarms(db), listCropTypes(db), listUnits(db), listActivityTypes(db), listCostCategories(db),
+    db.all(`select c.from_unit, c.to_unit, c.factor_micro, ct.name as crop_name, uf.name as from_name, ut.name as to_name
+      from unit_conversion c
+      join unit uf on uf.id = c.from_unit
+      join unit ut on ut.id = c.to_unit
+      left join crop_type ct on ct.id = c.crop_type_id
+      order by c.created_at, uf.name, ut.name`)]);
   const plots = [];
   for (const f of farms) for (const p of await listPlots(db, f.id)) plots.push({ ...p, label: `${p.name} (${f.name})` });
   const workers = [];
   for (const f of farms) for (const w of await listWorkers(db, f.id)) workers.push(w);
   const areaUnits = units.filter((u) => u.kind === 'area');
+  const factorNames = factors.map((f) => `1 ${String(f.from_name)} = ${formatQuantity(Number(f.factor_micro))} ${String(f.to_name)}${f.crop_name ? ` · ${String(f.crop_name)}` : ''}`);
   const add = (title, build) => () => openSheet(title, (close) => build(async (msg) => { close(); say(msg); await rerender(); }));
   const opts = (list) => list.map((x) => [x.id, x.name]);
 
@@ -33,7 +40,7 @@ export async function cadastros(db, rerender) {
       { name: 'name', label: 'Nome (ex.: kg, saca, tarefa)' },
       { name: 'kind', label: 'Tipo', type: 'select', options: [['massa', 'Peso'], ['area', 'Área'], ['volume', 'Volume'], ['contagem', 'Contagem']] },
     ], 'Salvar unidade', async (v) => { await createUnit(db, { name: v.name, kind: v.kind }); await ok('Unidade salva.'); }))],
-    ['fator', 'Fator de conversão', [], add('Fator de conversão', (ok) => h('div', {}, h('p', { class: 'muted' }, 'Você informa o fator e de onde ele veio. O app não traz fator pronto.'), form([
+    ['fator', 'Fator de conversão', factorNames, add('Fator de conversão', (ok) => h('div', {}, h('p', { class: 'muted' }, 'Você informa o fator e de onde ele veio. O app não traz fator pronto.'), form([
       { name: 'from', label: 'De', type: 'select', options: opts(units) },
       { name: 'to', label: 'Para', type: 'select', options: opts(units) },
       { name: 'factor', label: 'Quanto vale 1 da primeira na segunda', hint: 'ex.: 60 ou 0,4356', inputmode: 'decimal' },

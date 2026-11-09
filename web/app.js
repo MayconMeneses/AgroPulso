@@ -4,6 +4,7 @@ import { guardDatabase } from './app/domain/readonly-guard.js';
 import { migrations } from './app/migrations/migrations.js';
 import { migrate } from './app/migrations/runner.js';
 import { openBrowserSqlite } from './app/storage/browser-sqlite.js';
+import { StorageError } from './app/storage/saver.js';
 import { activateFromLink, guardPolicy, licenseStrip, refreshLicense } from './licenca.js';
 import { cadastros } from './views-cadastros.js';
 import { estoque } from './views-estoque.js';
@@ -62,6 +63,7 @@ async function render() {
   try {
     const strip = licenseStrip(go);
     main.replaceChildren(...(strip ? [strip] : []), ...(await VIEWS[tab](db, () => render())));
+    if (!main.contains(document.activeElement)) main.focus();
   } catch (e) {
     fail(e);
   }
@@ -70,12 +72,21 @@ async function render() {
 async function askAuthor() {
   const rows = await db.all("select value from app_meta where key = 'perfil'");
   if (rows[0]) { author = String(rows[0].value); return; }
-  await new Promise((resolve) => {
+  await new Promise((resolve, reject) => {
     main.replaceChildren(h('section', { class: 'panel' }, animatedMark(), h('h2', {}, 'Bem-vindo'), h('p', {}, 'Tudo o que você anotar fica só neste aparelho. Diga seu nome: ele aparece como autor nos registros.'),
-      form([{ name: 'name', label: 'Seu nome' }], 'Começar', async (v) => {
+      form([{ name: 'name', label: 'Seu nome' }], 'Começar', async (v, _f, showError) => {
         const name = v.name.trim();
-        if (!name) { say('Informe seu nome.', 'err'); return; }
-        await db.run('insert into app_meta (key, value) values (?, ?)', ['perfil', name]);
+        if (!name) { showError('Informe seu nome.'); return; }
+        try {
+          await db.run('insert into app_meta (key, value) values (?, ?)', ['perfil', name]);
+        } catch (e) {
+          const erro = e?.name === 'StorageError'
+            ? e
+            : new StorageError('Não foi possível salvar seu nome neste aparelho. Nada foi apagado; tente de novo.', { cause: e });
+          showError(erro.message);
+          reject(erro);
+          return;
+        }
         author = name;
         resolve();
       })));
@@ -140,10 +151,35 @@ async function start() {
     await addCommonCategoriesAndUnits(db).catch(onlyReadOnly);
     if (navigator.storage?.persist) navigator.storage.persist().catch(() => {});
     const linked = await activateFromLink(); // link de ativação enviado pelo WhatsApp (#licenca=...)
-    await askAuthor();
-    await render();
-    if (linked) say(linked.ok ? 'Licença ativada. Obrigado!' : linked.message, linked.ok ? 'ok' : 'err');
-    watchUpdates();
+    const finish = async () => {
+      await render();
+      if (linked) say(linked.ok ? 'Licença ativada. Obrigado!' : linked.message, linked.ok ? 'ok' : 'err');
+      watchUpdates();
+    };
+    const retryProfile = async () => {
+      try {
+        await askAuthor();
+        await finish();
+      } catch (e) {
+        console.error(e);
+        if (e?.name === 'StorageError') showProfileError(e);
+        else fail(e);
+      }
+    };
+    const showProfileError = (e) => {
+      main.replaceChildren(h('section', { class: 'panel' }, h('h2', {}, 'Não foi possível salvar seu nome'),
+        h('p', { class: 'callout' }, e.message),
+        h('button', { class: 'btn primary', type: 'button', onclick: retryProfile }, 'Tentar de novo')));
+    };
+    try {
+      await askAuthor();
+    } catch (e) {
+      console.error(e);
+      if (e?.name === 'StorageError') showProfileError(e);
+      else fail(e);
+      return;
+    }
+    await finish();
   } catch (e) {
     console.error(e);
     main.replaceChildren(h('p', { class: 'callout' }, 'Não foi possível abrir o banco de dados deste aparelho. Nada foi apagado.'));

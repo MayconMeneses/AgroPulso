@@ -32,7 +32,7 @@ export async function dashboard(db: Database): Promise<Dashboard> {
     "select a.id, a.cycle_id, a.occurred_on, t.name from field_activity a join activity_type t on t.id = a.type_id where a.state = 'PLANEJADA' order by a.occurred_on, a.id",
   );
   const toReceive = await db.all(
-    'select coalesce((select sum(amount_cents) from sale), 0) - coalesce((select sum(amount_cents) from sale_receipt), 0) as v',
+    'select coalesce(sum(max(0, s.amount_cents - coalesce((select sum(r.amount_cents) from sale_receipt r where r.sale_id = s.id), 0))), 0) as v from sale s',
   );
   const exp = await db.all("select substr(occurred_on, 1, 7) as m, sum(amount_cents) as v from financial_entry where voided_at is null and kind = 'DESPESA' and family_labor = 0 group by m");
   const sal = await db.all('select substr(sold_on, 1, 7) as m, sum(amount_cents) as v from sale group by m');

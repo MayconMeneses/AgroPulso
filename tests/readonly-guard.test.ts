@@ -61,7 +61,7 @@ test('classificador: toda gravação aponta a tabela certa, em qualquer jeito de
 });
 
 test('classificador: comandos que mudam estrutura ou são desconhecidos contam como gravação (na dúvida, bloqueia)', () => {
-  for (const q of ['create table x (a)', 'drop table farm', 'alter table farm add column x', 'vacuum', 'reindex', "attach database 'x' as y", 'detach y', 'pragma writable_schema = on', 'pragma foreign_keys = off', 'truncate farm', 'frobnicate', 'with c as (select 1) drop table farm']) {
+  for (const q of ['create table x (a)', 'drop table farm', 'alter table farm add column x', 'vacuum', 'reindex', "attach database 'x' as y", 'detach y', 'pragma writable_schema = on', 'pragma foreign_keys = off', 'pragma writable_schema(ON)', 'pragma foreign_keys(0)', 'pragma user_version(1)', 'truncate farm', 'frobnicate', 'with c as (select 1) drop table farm']) {
     assert.ok(classifySql(q).writes.includes('?'), q);
     assert.equal(isWriteAllowedWhenLocked(classifySql(q)), false, q);
   }

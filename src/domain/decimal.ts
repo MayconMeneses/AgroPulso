@@ -23,13 +23,15 @@ function group(intPart: string): string {
 }
 
 export function formatQuantity(micro: number): string {
-  const s = String(micro).padStart(7, '0');
+  const negative = micro < 0;
+  const s = String(Math.abs(micro)).padStart(7, '0');
   const int = s.slice(0, -6);
   const frac = s.slice(-6).replace(/0+$/, '');
-  return group(int) + (frac ? `,${frac}` : '');
+  return `${negative ? '-' : ''}${group(int)}${frac ? `,${frac}` : ''}`;
 }
 
 export function formatMoney(cents: number): string {
-  const s = String(cents).padStart(3, '0');
-  return `R$ ${group(s.slice(0, -2))},${s.slice(-2)}`;
+  const negative = cents < 0;
+  const s = String(Math.abs(cents)).padStart(3, '0');
+  return `R$ ${negative ? '-' : ''}${group(s.slice(0, -2))},${s.slice(-2)}`;
 }

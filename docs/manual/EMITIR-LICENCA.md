@@ -22,7 +22,7 @@ Nada do que está aqui vai para o app nem para o GitHub, exceto a **chave públi
    ```
    node scripts/licenca.mjs aplicar-chave-publica
    ```
-5. Peça ao Claude para rodar os testes e enviar ao GitHub. Só depois disso o app novo passa a reconhecer as suas licenças.
+5. Rode os testes e envie ao GitHub. Só depois disso o app novo passa a reconhecer as suas licenças.
 
 ## Parte 2: ativar a sua própria licença (antes de cobrar de qualquer pessoa)
 
@@ -32,7 +32,7 @@ Nada do que está aqui vai para o app nem para o GitHub, exceto a **chave públi
    ```
 2. Ele mostra uma **mensagem pronta** com um link. Abra o link **no seu iPhone** e **no seu computador**. O app diz "Licença ativada" e o link some do endereço.
 3. Confira em **Cadastros > Licença** que aparece "Licenciado para Maycon".
-4. Só quando todos os seus aparelhos estiverem ativados, peça ao Claude para ligar a cobrança. **Se ligar antes, os seus dados ficam em somente leitura.**
+4. Só quando todos os seus aparelhos estiverem ativados, ligue a cobrança. **Se ligar antes, os seus dados ficam em somente leitura.**
 
 ## Parte 3: emitir para um cliente
 
@@ -51,7 +51,7 @@ O comando mostra a mensagem completa (link de ativação e a chave por escrito, 
 
 ## Se algo der errado
 
-- **"Já existe uma chave privada":** o comando recusa para não apagar a sua. Não use `--forcar` sem ter a cópia da chave antiga: as licenças já entregues deixariam de funcionar.
+- **"Já existe uma chave privada":** o comando recusa para não apagar a sua. Não use `--forcar` sem ter a cópia da chave antiga: as licenças já entregues deixariam de funcionar. Ao aplicar uma chave pública nova com `--forcar`, as anteriores continuam no app (o ADR-014 pede mantê-las por duas versões).
 - **"A pasta está dentro do projeto":** use uma pasta fora dele.
 - **Cliente diz que a chave não funciona:** peça para colar a chave inteira em Cadastros > Licença. Se aparecer "incompleta", faltou um pedaço da cópia. Emita de novo (cada emissão é uma licença nova).
 - **Cliente trocou de celular:** a licença não vai na cópia de segurança. Ele cola a mesma chave de novo (vale para 3 aparelhos).

@@ -5,7 +5,7 @@ import { createCropType } from '../src/domain/crop-types.ts';
 import { openCycle, planCycle, startCycle } from '../src/domain/cycles.ts';
 import { createFarm } from '../src/domain/farms.ts';
 import { recordEntry } from '../src/domain/financial.ts';
-import { recordHarvest, recordSale } from '../src/domain/production.ts';
+import { recordHarvest, recordReceipt, recordSale } from '../src/domain/production.ts';
 import { createUnit } from '../src/domain/units.ts';
 import { buildReport, csvCell, toCsv } from '../src/reports/csv.ts';
 import { dashboard } from '../src/reports/dashboard.ts';
@@ -32,6 +32,8 @@ async function setup() {
 test('célula de CSV neutraliza fórmula e escapa aspas e ponto e vírgula', () => {
   assert.equal(csvCell('=1+1'), "'=1+1");
   assert.equal(csvCell('@soma'), "'@soma");
+  assert.equal(csvCell(' =1+1'), "' =1+1");
+  assert.equal(csvCell('  @x'), "'  @x");
   assert.equal(csvCell('a;b'), '"a;b"');
   assert.equal(csvCell('diz "oi"'), '"diz ""oi"""');
   assert.equal(csvCell(null), '');
@@ -101,4 +103,16 @@ test('painel: safras ativas, pendências, a receber e evolução por mês; só l
     { month: '2027-02', expensesCents: 0, salesCents: 400_000 },
   ]);
   assert.equal((await db.all('select count(*) as n from audit_event'))[0]?.n, antes);
+});
+
+test('painel: a receber soma o saldo em aberto de cada venda', async () => {
+  const db = await freshDb();
+  const farm = await createFarm(db, { name: 'Sítio', timezone: 'America/Recife' });
+  const crop = await createCropType(db, { name: 'Milho' });
+  const kg = await createUnit(db, { name: 'kg', kind: 'massa' });
+  const c = await openCycle(db, { farmId: farm.id, cropTypeId: crop.id });
+  const v1 = await recordSale(db, { cycleId: c.id, soldOn: '2026-12-08', quantityMicro: 1_000_000, unitId: kg.id, amountCents: 10_000, author: 'M' });
+  await recordSale(db, { cycleId: c.id, soldOn: '2026-12-09', quantityMicro: 1_000_000, unitId: kg.id, amountCents: 10_000, author: 'M' });
+  await recordReceipt(db, { saleId: v1.id, receivedOn: '2026-12-10', amountCents: 15_000 });
+  assert.equal((await dashboard(db)).salesToReceiveCents, 10_000);
 });

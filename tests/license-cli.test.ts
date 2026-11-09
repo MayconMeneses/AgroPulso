@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { copyFileSync, existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -102,6 +102,27 @@ test('aplicar-chave-publica grava só a pública no arquivo de chaves e não sob
     assert.notEqual(run(['aplicar-chave-publica', '--pasta', dir, '--arquivo-chaves', target]).status, 0, 'não troca uma chave existente sem --forcar');
     assert.equal(readFileSync('src/domain/license-keys.ts', 'utf8'), before, 'o arquivo real do projeto não foi tocado');
   } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('aplicar-chave-publica --forcar troca só o kid novo e mantém as chaves anteriores', () => {
+  const dir = tmp();
+  const novaDir = tmp();
+  try {
+    assert.equal(run(['gerar-chaves', '--pasta', dir]).status, 0);
+    assert.equal(run(['gerar-chaves', '--pasta', novaDir]).status, 0);
+    const antiga = JSON.parse(readFileSync(join(dir, 'chave-publica.json'), 'utf8'));
+    const nova = JSON.parse(readFileSync(join(novaDir, 'chave-publica.json'), 'utf8'));
+    const target = join(dir, 'license-keys.ts');
+    writeFileSync(target, `export const TRUSTED_PUBLIC_KEYS: TrustedKeys = { kantiga: ${JSON.stringify(antiga)}, k1: ${JSON.stringify(antiga)} };\n`);
+    const r = run(['aplicar-chave-publica', '--pasta', novaDir, '--arquivo-chaves', target, '--forcar']);
+    assert.equal(r.status, 0, r.stderr);
+    const text = readFileSync(target, 'utf8');
+    assert.ok(text.includes(`kantiga: ${JSON.stringify(antiga)}`), 'a chave de outro kid continua no arquivo');
+    assert.ok(text.includes(`k1: ${JSON.stringify(nova)}`), 'o kid k1 passa a ter a chave nova');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+    rmSync(novaDir, { recursive: true, force: true });
+  }
 });
 
 test('HARD: nenhum arquivo de chave privada ou lista de licenças dentro do projeto', () => {

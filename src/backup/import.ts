@@ -1,14 +1,15 @@
 import type { Database, SqlValue } from '../storage/database.ts';
-import { sniffMime } from '../domain/attachments.ts';
+import { MAX_ATTACHMENTS_TOTAL_BYTES, sniffMime } from '../domain/attachments.ts';
 import { assertOutline } from '../domain/geo.ts';
 import { currentVersion } from '../migrations/runner.ts';
 import { FORMAT, FORMAT_VERSION, decodeRow, sha256Hex } from './codec.ts';
 import { BackupError } from './errors.ts';
 import { columnNames, quote, userTables } from './schema.ts';
 
-// Um backup legítimo é bem menor que isso (fotos ficam limitadas a 5 MB cada). O teto evita travar o aparelho
-// ao abrir por engano um arquivo gigante.
-export const MAX_BACKUP_CHARS = 120 * 1024 * 1024;
+// Anexos entram no JSON em base64, que ocupa 4/3 dos bytes originais. O teto cobre o pior caso permitido de anexos
+// (120 MiB viram 160 MiB de texto) mais 16 MiB para o JSON em volta e os demais dados. Sem isso, um backup legítimo
+// com muitas fotos era recusado como "arquivo grande".
+export const MAX_BACKUP_CHARS = Math.ceil(MAX_ATTACHMENTS_TOTAL_BYTES / 3) * 4 + 16 * 1024 * 1024;
 
 interface BackupFile {
   schemaVersion: number;

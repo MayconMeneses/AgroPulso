@@ -37,7 +37,6 @@ export async function activateFromLink() {
 }
 
 const PLAN = { anual: 'Plano anual', mensal: 'Plano mensal', interna: 'Licença interna' };
-const dateBr = (d) => d.split('-').reverse().join('/');
 
 // Faixa no alto de cada tela: só aparece com a cobrança ligada e só quando há o que dizer.
 export function licenseStrip(go) {
@@ -58,10 +57,10 @@ export function licencaBlock(rerender) {
   if (!s.name) lines.push(h('p', {}, s.message));
   return h('section', { class: 'panel' }, h('div', { class: 'eyebrow' }, 'Licença'), h('h2', {}, view.enforced ? 'Sua licença' : 'Licença do AgroPulso'), ...lines,
     h('p', { class: 'muted small' }, 'Cole abaixo a chave que você recebeu. Ela vale para até 3 aparelhos. Seus dados nunca são apagados, mesmo com a licença vencida.'),
-    form([{ name: 'chave', label: 'Chave de licença', type: 'textarea' }], 'Ativar licença', async (v) => {
-      if (!v.chave.trim()) { say('Cole a chave que você recebeu.', 'err'); return; }
+    form([{ name: 'chave', label: 'Chave de licença', type: 'textarea' }], 'Ativar licença', async (v, _f, showError) => {
+      if (!v.chave.trim()) { showError('Cole a chave que você recebeu.'); return; }
       const r = await activateFromText(v.chave);
-      if (!r.ok) { say(r.message, 'err'); return; }
+      if (!r.ok) { showError(r.message); return; }
       say('Licença ativada. Obrigado!');
       await rerender();
     }));

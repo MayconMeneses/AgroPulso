@@ -41,6 +41,7 @@ const registryPath = join(folder, 'licencas-emitidas.jsonl');
 const toPem = (bytes) => `-----BEGIN PRIVATE KEY-----\n${Buffer.from(bytes).toString('base64').replace(/(.{64})/g, '$1\n').trim()}\n-----END PRIVATE KEY-----\n`;
 const fromPem = (pem) => Buffer.from(pem.replace(/-----[^-]+-----|\s+/g, ''), 'base64');
 const todayLocal = () => values.hoje ?? new Date().toLocaleDateString('en-CA');
+const isIsoDate = (s) => /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(Date.parse(`${s}T00:00:00Z`)) && new Date(Date.parse(`${s}T00:00:00Z`)).toISOString().slice(0, 10) === s;
 const addDays = (iso, n) => new Date(Date.parse(`${iso}T00:00:00Z`) + n * 86_400_000).toISOString().slice(0, 10);
 
 async function gerarChaves() {
@@ -66,13 +67,20 @@ function aplicarChavePublica() {
   if ('d' in jwk) die('o arquivo da chave pública contém campo privado ("d"). Abortei.');
   const file = values['arquivo-chaves'] ? resolve(values['arquivo-chaves']) : join(ROOT, 'src', 'domain', 'license-keys.ts'); // --arquivo-chaves é só para testes
   const text = readFileSync(file, 'utf8');
-  const re = /export const TRUSTED_PUBLIC_KEYS: TrustedKeys = [\s\S]*?;\s*$/;
-  if (!re.test(text)) die('não reconheci o formato de src/domain/license-keys.ts.');
-  const current = /TRUSTED_PUBLIC_KEYS: TrustedKeys = \{\s*\}/.test(text);
+  const re = /export const TRUSTED_PUBLIC_KEYS: TrustedKeys = \{([\s\S]*?)\};\s*$/;
+  const match = re.exec(text);
+  if (!match) die('não reconheci o formato de src/domain/license-keys.ts.');
+  const current = match[1].trim() === '';
   if (!current && !values.forcar) die('license-keys.ts já tem uma chave. Para trocar, use --forcar (e mantenha a antiga por duas versões, ver o ADR-014).');
-  writeFileSync(file, text.replace(re, `export const TRUSTED_PUBLIC_KEYS: TrustedKeys = { ${KID}: ${JSON.stringify(jwk)} };\n`));
+  const entries = [...match[1].matchAll(/([A-Za-z0-9_-]+)\s*:\s*(\{[^{}]*\})/g)];
+  const rest = match[1].replace(/([A-Za-z0-9_-]+)\s*:\s*\{[^{}]*\}/g, '').replace(/[,\s]/g, '');
+  if (rest !== '') die('não reconheci as chaves que já estão em src/domain/license-keys.ts.');
+  const keys = new Map(entries.map(([, kid, json]) => [kid, JSON.parse(json)]));
+  keys.set(KID, jwk); // troca só a chave deste kid; as anteriores continuam aceitas
+  const body = [...keys].map(([kid, key]) => `${kid}: ${JSON.stringify(key)}`).join(', ');
+  writeFileSync(file, text.replace(re, `export const TRUSTED_PUBLIC_KEYS: TrustedKeys = { ${body} };\n`));
   out(`Chave pública gravada em src/domain/license-keys.ts (kid "${KID}").`);
-  out('Agora é preciso publicar o app com esta chave: peça ao Claude para rodar os testes e enviar ao GitHub.');
+  out('As chaves anteriores foram mantidas. Agora é preciso publicar o app com esta chave: rode os testes e envie ao GitHub.');
 }
 
 async function emitir() {
@@ -84,6 +92,8 @@ async function emitir() {
   if (!existsSync(publicPath)) die(`não achei ${publicPath}.`);
   const aparelhos = values.aparelhos === undefined ? 3 : Number(values.aparelhos);
   const emitida = todayLocal();
+  if (!isIsoDate(emitida)) die(`data em --hoje inválida: "${emitida}". Use o formato AAAA-MM-DD, como 2026-12-05.`);
+  if (values.ate !== undefined && !isIsoDate(values.ate)) die(`data em --ate inválida: "${values.ate}". Use o formato AAAA-MM-DD, como 2027-12-31.`);
   const payload = { v: 1, kid: KID, id: `lic_${base64urlEncode(crypto.getRandomValues(new Uint8Array(9)))}`, nome, plano, emitida, aparelhos };
   if (plano !== 'interna') payload.valida_ate = values.ate ?? addDays(emitida, plano === 'anual' ? 365 : 37); // mensal: 30 dias + 7 de tolerância
   else if (values.ate) die('a licença interna não tem data de validade.');

@@ -1,7 +1,7 @@
 import type { Database } from '../storage/database.ts';
 import { recordEvent } from './audit.ts';
 import { DomainError } from './errors.ts';
-import { assertNameLength } from './guards.ts';
+import { assertCycleWritable, assertNameLength } from './guards.ts';
 import { assertOutline } from './geo.ts';
 import type { FarmLocation } from './location.ts';
 import { getUnit } from './units.ts';
@@ -89,6 +89,7 @@ export async function assignPlot(db: Database, cycleId: string, version: number,
     const c = (await db.all('select farm_id, version, plot_id from crop_cycle where id = ?', [cycleId]))[0];
     if (!c) throw new DomainError('nao_encontrado', 'Safra não encontrada');
     if (Number(c.version) !== version) throw new DomainError('conflito_de_versao', 'Esta safra foi alterada por outra ação. Recarregue e tente de novo');
+    await assertCycleWritable(db, cycleId);
     const p = await getPlot(db, plotId);
     if (!p || p.farmId !== String(c.farm_id)) throw new DomainError('invalido', 'O talhão precisa ser da mesma propriedade da safra');
     await db.run('update crop_cycle set plot_id = ?, version = version + 1 where id = ? and version = ?', [plotId, cycleId, version]);
